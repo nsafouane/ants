@@ -1,11 +1,11 @@
 {
   "mode": "performance",
-  "max_goroutines": 0,
-  "memory_budget_mb": 0,
+  "max_goroutines": 8,
+  "memory_budget_mb": 512,
   "prewarm_top_n": 10,
   "vector_db": {
     "type": "qdrant",
     "url": "http://localhost:6333",
-    "collection": "code_nodes"
+    "collection": "ants_code_nodes"
   }
 }

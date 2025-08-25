@@ -14,11 +14,11 @@ import (
 	"github.com/charmbracelet/crush/internal/config"
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/orchestrator"
 	"github.com/charmbracelet/crush/internal/format"
 	"github.com/charmbracelet/crush/internal/history"
 	"github.com/charmbracelet/crush/internal/llm/agent"
 	"github.com/charmbracelet/crush/internal/log"
+	"github.com/charmbracelet/crush/internal/orchestrator"
 	"github.com/charmbracelet/crush/internal/pubsub"
 
 	"github.com/charmbracelet/crush/internal/lsp"
@@ -80,7 +80,7 @@ func New(ctx context.Context, conn *sql.DB, cfg *config.Config) (*App, error) {
 
 		config: cfg,
 
-	Orchestrator: orchestrator.New(),
+		Orchestrator: orchestrator.New(),
 
 		watcherCancelFuncs: csync.NewSlice[context.CancelFunc](),
 
@@ -93,6 +93,9 @@ func New(ctx context.Context, conn *sql.DB, cfg *config.Config) (*App, error) {
 
 	// Initialize LSP clients in the background.
 	app.initLSPClients(ctx)
+
+	// Configure orchestrator with database access
+	app.Orchestrator.SetDatabase(q)
 
 	// Apply repo-level ContextEngine config to orchestrator and start it
 	if cfg.Options != nil && cfg.Options.ContextEngine != nil {
@@ -221,6 +224,7 @@ func (app *App) setupEvents() {
 	setupSubscriber(ctx, app.serviceEventsWG, "history", app.History.Subscribe, app.events)
 	setupSubscriber(ctx, app.serviceEventsWG, "mcp", agent.SubscribeMCPEvents, app.events)
 	setupSubscriber(ctx, app.serviceEventsWG, "lsp", SubscribeLSPEvents, app.events)
+	setupSubscriber(ctx, app.serviceEventsWG, "orchestrator", app.Orchestrator.Subscribe, app.events)
 	cleanupFunc := func() {
 		cancel()
 		app.serviceEventsWG.Wait()
