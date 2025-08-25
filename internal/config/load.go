@@ -332,6 +332,43 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 		c.LSP = make(map[string]LSPConfig)
 	}
 
+	// Ensure Options and nested ContextEngine defaults
+	if c.Options == nil {
+		c.Options = &Options{}
+	}
+	if c.Options.ContextEngine == nil {
+		c.Options.ContextEngine = &ContextEngineConfig{
+			Mode:           ContextEngineModePerformance,
+			MaxGoroutines:  0,
+			MemoryBudgetMB: 0,
+			PrewarmTopN:    10,
+		}
+	}
+
+	// Try loading repository-level config/context_engine.json and merge if present.
+	repoCtxPath := filepath.Join(workingDir, "config", "context_engine.json")
+	if b, err := os.ReadFile(repoCtxPath); err == nil {
+		var repoCfg ContextEngineConfig
+		if err := json.Unmarshal(b, &repoCfg); err == nil {
+			// Merge simple scalar fields if they are non-zero values
+			if repoCfg.Mode != "" {
+				c.Options.ContextEngine.Mode = repoCfg.Mode
+			}
+			if repoCfg.MaxGoroutines != 0 {
+				c.Options.ContextEngine.MaxGoroutines = repoCfg.MaxGoroutines
+			}
+			if repoCfg.MemoryBudgetMB != 0 {
+				c.Options.ContextEngine.MemoryBudgetMB = repoCfg.MemoryBudgetMB
+			}
+			if repoCfg.PrewarmTopN != 0 {
+				c.Options.ContextEngine.PrewarmTopN = repoCfg.PrewarmTopN
+			}
+			if repoCfg.VectorDB != nil {
+				c.Options.ContextEngine.VectorDB = repoCfg.VectorDB
+			}
+		}
+	}
+
 	// Apply default file types for known LSP servers if not specified
 	applyDefaultLSPFileTypes(c.LSP)
 

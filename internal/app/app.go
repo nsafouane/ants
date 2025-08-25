@@ -14,6 +14,7 @@ import (
 	"github.com/charmbracelet/crush/internal/config"
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/db"
+	"github.com/charmbracelet/crush/internal/orchestrator"
 	"github.com/charmbracelet/crush/internal/format"
 	"github.com/charmbracelet/crush/internal/history"
 	"github.com/charmbracelet/crush/internal/llm/agent"
@@ -42,6 +43,9 @@ type App struct {
 	lspWatcherWG       sync.WaitGroup
 
 	config *config.Config
+
+	// Orchestrator coordinates Context Engine tasks.
+	Orchestrator *orchestrator.QueryOrchestrator
 
 	serviceEventsWG *sync.WaitGroup
 	eventsCtx       context.Context
@@ -76,6 +80,8 @@ func New(ctx context.Context, conn *sql.DB, cfg *config.Config) (*App, error) {
 
 		config: cfg,
 
+	Orchestrator: orchestrator.New(),
+
 		watcherCancelFuncs: csync.NewSlice[context.CancelFunc](),
 
 		events:          make(chan tea.Msg, 100),
@@ -87,6 +93,12 @@ func New(ctx context.Context, conn *sql.DB, cfg *config.Config) (*App, error) {
 
 	// Initialize LSP clients in the background.
 	app.initLSPClients(ctx)
+
+	// Apply repo-level ContextEngine config to orchestrator and start it
+	if cfg.Options != nil && cfg.Options.ContextEngine != nil {
+		app.Orchestrator.ApplyConfig(cfg.Options.ContextEngine)
+	}
+	app.Orchestrator.Start()
 
 	// TODO: remove the concept of agent config, most likely.
 	if cfg.IsConfigured() {
@@ -342,5 +354,10 @@ func (app *App) Shutdown() {
 		if cleanup != nil {
 			cleanup()
 		}
+	}
+
+	// Stop orchestrator last
+	if app.Orchestrator != nil {
+		app.Orchestrator.Stop()
 	}
 }

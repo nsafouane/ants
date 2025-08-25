@@ -143,6 +143,47 @@ type Options struct {
 	DebugLSP             bool        `json:"debug_lsp,omitempty" jsonschema:"description=Enable debug logging for LSP servers,default=false"`
 	DisableAutoSummarize bool        `json:"disable_auto_summarize,omitempty" jsonschema:"description=Disable automatic conversation summarization,default=false"`
 	DataDirectory        string      `json:"data_directory,omitempty" jsonschema:"description=Directory for storing application data (relative to working directory),default=.crush,example=.crush"` // Relative to the cwd
+	// Context engine specific settings
+	ContextEngine *ContextEngineConfig `json:"context_engine,omitempty" jsonschema:"description=Context Engine specific configuration"`
+}
+
+// ContextEngineMode controls how the Context Engine prioritizes work and uses resources.
+type ContextEngineMode string
+
+const (
+	ContextEngineModePerformance ContextEngineMode = "performance"
+	ContextEngineModeOnDemand     ContextEngineMode = "on_demand"
+	ContextEngineModeEco          ContextEngineMode = "eco"
+)
+
+// VectorDBConfig contains minimal configuration to connect to a vector store.
+type VectorDBConfig struct {
+	// Type of vector DB (e.g., "qdrant", "pinecone", "sqlite")
+	Type string `json:"type,omitempty" jsonschema:"description=Vector database type,example=qdrant"`
+	// URL or endpoint for the vector DB service
+	URL string `json:"url,omitempty" jsonschema:"description=Vector DB endpoint URL,format=uri,example=http://localhost:6333"`
+	// API key or token if required by the vector DB
+	APIKey string `json:"api_key,omitempty" jsonschema:"description=API key for the vector DB service"`
+	// Collection or namespace name to use
+	Collection string `json:"collection,omitempty" jsonschema:"description=Collection or namespace name in the vector DB,example=code_nodes"`
+}
+
+// ContextEngineConfig holds configuration specific to the Context Engine feature.
+type ContextEngineConfig struct {
+	// Operational mode (Performance, On-Demand, Eco)
+	Mode ContextEngineMode `json:"mode,omitempty" jsonschema:"description=Operational mode for the Context Engine,enum=performance,enum=on_demand,enum=eco,default=performance"`
+
+	// Maximum number of goroutines to use for Tier 1 analysis. If 0 the system will pick a sane default.
+	MaxGoroutines int `json:"max_goroutines,omitempty" jsonschema:"description=Maximum goroutines for structural analysis,minimum=0"`
+
+	// Memory budget in megabytes for analysis caching and AST operations. If 0 no explicit budget is applied.
+	MemoryBudgetMB int `json:"memory_budget_mb,omitempty" jsonschema:"description=Memory budget (MB) for AST and analysis caches,minimum=0"`
+
+	// Vector DB configuration for embeddings and semantic search.
+	VectorDB *VectorDBConfig `json:"vector_db,omitempty" jsonschema:"description=Vector DB configuration for embeddings"`
+
+	// PrewarmTopN indicates how many hotspot files to proactively run Tier 2 analysis on after Tier 1 completes.
+	PrewarmTopN int `json:"prewarm_top_n,omitempty" jsonschema:"description=Number of hotspot files to prewarm with Tier 2 analysis,minimum=0"`
 }
 
 type MCPs map[string]MCPConfig
