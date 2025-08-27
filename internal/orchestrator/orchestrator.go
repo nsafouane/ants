@@ -529,7 +529,7 @@ func (o *QueryOrchestrator) processQueuedTasks() {
 			o.metrics.QueueLength = len(o.taskQueue)
 		default:
 			// Worker pool is busy, stop trying
-			break
+			return
 		}
 	}
 }
