@@ -27,3 +27,46 @@ LIMIT 1;
 -- name: DeleteEmbedding :exec
 DELETE FROM embeddings
 WHERE id = ?;
+
+-- name: GetEmbedding :one
+SELECT *
+FROM embeddings
+WHERE id = ?
+LIMIT 1;
+
+-- name: GetEmbeddingByNode :one
+SELECT *
+FROM embeddings
+WHERE node_id = ?
+LIMIT 1;
+
+-- name: ListEmbeddingsBySession :many
+SELECT *
+FROM embeddings
+WHERE session_id = ?
+ORDER BY created_at DESC;
+
+-- name: ListEmbeddingsByDims :many
+SELECT *
+FROM embeddings
+WHERE dims = ?
+ORDER BY created_at DESC;
+
+-- name: UpdateEmbedding :one
+UPDATE embeddings
+SET vector_id = ?, vector = ?, dims = ?, metadata = ?
+WHERE id = ?
+RETURNING *;
+
+-- name: DeleteEmbeddingByNode :exec
+DELETE FROM embeddings
+WHERE node_id = ?;
+
+-- name: DeleteEmbeddingsBySession :exec
+DELETE FROM embeddings
+WHERE session_id = ?;
+
+-- name: CountEmbeddingsBySession :one
+SELECT COUNT(*)
+FROM embeddings
+WHERE session_id = ?;

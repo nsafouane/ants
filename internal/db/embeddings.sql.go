@@ -10,6 +10,19 @@ import (
 	"database/sql"
 )
 
+const countEmbeddingsBySession = `-- name: CountEmbeddingsBySession :one
+SELECT COUNT(*)
+FROM embeddings
+WHERE session_id = ?
+`
+
+func (q *Queries) CountEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) (int64, error) {
+	row := q.queryRow(ctx, q.countEmbeddingsBySessionStmt, countEmbeddingsBySession, sessionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEmbedding = `-- name: CreateEmbedding :one
 INSERT INTO embeddings (
     node_id,
@@ -65,6 +78,72 @@ WHERE id = ?
 func (q *Queries) DeleteEmbedding(ctx context.Context, id int64) error {
 	_, err := q.exec(ctx, q.deleteEmbeddingStmt, deleteEmbedding, id)
 	return err
+}
+
+const deleteEmbeddingByNode = `-- name: DeleteEmbeddingByNode :exec
+DELETE FROM embeddings
+WHERE node_id = ?
+`
+
+func (q *Queries) DeleteEmbeddingByNode(ctx context.Context, nodeID int64) error {
+	_, err := q.exec(ctx, q.deleteEmbeddingByNodeStmt, deleteEmbeddingByNode, nodeID)
+	return err
+}
+
+const deleteEmbeddingsBySession = `-- name: DeleteEmbeddingsBySession :exec
+DELETE FROM embeddings
+WHERE session_id = ?
+`
+
+func (q *Queries) DeleteEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) error {
+	_, err := q.exec(ctx, q.deleteEmbeddingsBySessionStmt, deleteEmbeddingsBySession, sessionID)
+	return err
+}
+
+const getEmbedding = `-- name: GetEmbedding :one
+SELECT id, node_id, session_id, vector_id, vector, dims, metadata, created_at
+FROM embeddings
+WHERE id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetEmbedding(ctx context.Context, id int64) (Embedding, error) {
+	row := q.queryRow(ctx, q.getEmbeddingStmt, getEmbedding, id)
+	var i Embedding
+	err := row.Scan(
+		&i.ID,
+		&i.NodeID,
+		&i.SessionID,
+		&i.VectorID,
+		&i.Vector,
+		&i.Dims,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getEmbeddingByNode = `-- name: GetEmbeddingByNode :one
+SELECT id, node_id, session_id, vector_id, vector, dims, metadata, created_at
+FROM embeddings
+WHERE node_id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetEmbeddingByNode(ctx context.Context, nodeID int64) (Embedding, error) {
+	row := q.queryRow(ctx, q.getEmbeddingByNodeStmt, getEmbeddingByNode, nodeID)
+	var i Embedding
+	err := row.Scan(
+		&i.ID,
+		&i.NodeID,
+		&i.SessionID,
+		&i.VectorID,
+		&i.Vector,
+		&i.Dims,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getEmbeddingByVectorID = `-- name: GetEmbeddingByVectorID :one
@@ -127,4 +206,119 @@ func (q *Queries) GetEmbeddingsByNode(ctx context.Context, nodeID int64) ([]Embe
 		return nil, err
 	}
 	return items, nil
+}
+
+const listEmbeddingsByDims = `-- name: ListEmbeddingsByDims :many
+SELECT id, node_id, session_id, vector_id, vector, dims, metadata, created_at
+FROM embeddings
+WHERE dims = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListEmbeddingsByDims(ctx context.Context, dims sql.NullInt64) ([]Embedding, error) {
+	rows, err := q.query(ctx, q.listEmbeddingsByDimsStmt, listEmbeddingsByDims, dims)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Embedding{}
+	for rows.Next() {
+		var i Embedding
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.SessionID,
+			&i.VectorID,
+			&i.Vector,
+			&i.Dims,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEmbeddingsBySession = `-- name: ListEmbeddingsBySession :many
+SELECT id, node_id, session_id, vector_id, vector, dims, metadata, created_at
+FROM embeddings
+WHERE session_id = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) ([]Embedding, error) {
+	rows, err := q.query(ctx, q.listEmbeddingsBySessionStmt, listEmbeddingsBySession, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Embedding{}
+	for rows.Next() {
+		var i Embedding
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.SessionID,
+			&i.VectorID,
+			&i.Vector,
+			&i.Dims,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateEmbedding = `-- name: UpdateEmbedding :one
+UPDATE embeddings
+SET vector_id = ?, vector = ?, dims = ?, metadata = ?
+WHERE id = ?
+RETURNING id, node_id, session_id, vector_id, vector, dims, metadata, created_at
+`
+
+type UpdateEmbeddingParams struct {
+	VectorID sql.NullString `json:"vector_id"`
+	Vector   []byte         `json:"vector"`
+	Dims     sql.NullInt64  `json:"dims"`
+	Metadata interface{}    `json:"metadata"`
+	ID       int64          `json:"id"`
+}
+
+func (q *Queries) UpdateEmbedding(ctx context.Context, arg UpdateEmbeddingParams) (Embedding, error) {
+	row := q.queryRow(ctx, q.updateEmbeddingStmt, updateEmbedding,
+		arg.VectorID,
+		arg.Vector,
+		arg.Dims,
+		arg.Metadata,
+		arg.ID,
+	)
+	var i Embedding
+	err := row.Scan(
+		&i.ID,
+		&i.NodeID,
+		&i.SessionID,
+		&i.VectorID,
+		&i.Vector,
+		&i.Dims,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
 }

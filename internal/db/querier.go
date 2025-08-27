@@ -10,6 +10,13 @@ import (
 )
 
 type Querier interface {
+	CountAnalysisByStatus(ctx context.Context, arg CountAnalysisByStatusParams) (int64, error)
+	CountAnalysisByTier(ctx context.Context, arg CountAnalysisByTierParams) (int64, error)
+	CountCodeNodesByKind(ctx context.Context, arg CountCodeNodesByKindParams) (int64, error)
+	CountCodeNodesBySession(ctx context.Context, sessionID string) (int64, error)
+	CountDependenciesFrom(ctx context.Context, fromNode int64) (int64, error)
+	CountDependenciesTo(ctx context.Context, toNode int64) (int64, error)
+	CountEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) (int64, error)
 	CreateAnalysisMetadata(ctx context.Context, arg CreateAnalysisMetadataParams) (AnalysisMetadatum, error)
 	CreateCodeNode(ctx context.Context, arg CreateCodeNodeParams) (CodeNode, error)
 	CreateDependency(ctx context.Context, arg CreateDependencyParams) (Dependency, error)
@@ -17,35 +24,60 @@ type Querier interface {
 	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	DeleteAnalysisByNode(ctx context.Context, nodeID sql.NullInt64) error
+	DeleteAnalysisBySession(ctx context.Context, sessionID sql.NullString) error
+	DeleteAnalysisMetadata(ctx context.Context, id int64) error
 	DeleteCodeNode(ctx context.Context, id int64) error
+	DeleteCodeNodesByPath(ctx context.Context, path string) error
+	DeleteCodeNodesBySession(ctx context.Context, sessionID string) error
+	DeleteDependenciesByNode(ctx context.Context, arg DeleteDependenciesByNodeParams) error
 	DeleteDependency(ctx context.Context, id int64) error
 	DeleteEmbedding(ctx context.Context, id int64) error
+	DeleteEmbeddingByNode(ctx context.Context, nodeID int64) error
+	DeleteEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) error
 	DeleteFile(ctx context.Context, id string) error
 	DeleteMessage(ctx context.Context, id string) error
 	DeleteSession(ctx context.Context, id string) error
 	DeleteSessionFiles(ctx context.Context, sessionID string) error
 	DeleteSessionMessages(ctx context.Context, sessionID string) error
 	GetCodeNode(ctx context.Context, id int64) (CodeNode, error)
+	GetCodeNodeByPathAndSymbol(ctx context.Context, arg GetCodeNodeByPathAndSymbolParams) (CodeNode, error)
+	GetDependency(ctx context.Context, arg GetDependencyParams) (Dependency, error)
+	GetEmbedding(ctx context.Context, id int64) (Embedding, error)
+	GetEmbeddingByNode(ctx context.Context, nodeID int64) (Embedding, error)
 	GetEmbeddingByVectorID(ctx context.Context, vectorID sql.NullString) (Embedding, error)
 	GetEmbeddingsByNode(ctx context.Context, nodeID int64) ([]Embedding, error)
 	GetFile(ctx context.Context, id string) (File, error)
 	GetFileByPathAndSession(ctx context.Context, arg GetFileByPathAndSessionParams) (File, error)
+	GetLatestAnalysisByNode(ctx context.Context, arg GetLatestAnalysisByNodeParams) (AnalysisMetadatum, error)
 	GetMessage(ctx context.Context, id string) (Message, error)
 	GetSessionByID(ctx context.Context, id string) (Session, error)
+	ListAllDependencies(ctx context.Context) ([]ListAllDependenciesRow, error)
 	ListAnalysisByNode(ctx context.Context, nodeID sql.NullInt64) ([]AnalysisMetadatum, error)
 	ListAnalysisBySession(ctx context.Context, sessionID sql.NullString) ([]AnalysisMetadatum, error)
+	ListAnalysisByStatus(ctx context.Context, status sql.NullString) ([]AnalysisMetadatum, error)
+	ListAnalysisByTier(ctx context.Context, tier int64) ([]AnalysisMetadatum, error)
+	ListCodeNodesByKind(ctx context.Context, kind sql.NullString) ([]CodeNode, error)
+	ListCodeNodesByLanguage(ctx context.Context, language sql.NullString) ([]CodeNode, error)
 	ListCodeNodesByPath(ctx context.Context, path string) ([]CodeNode, error)
 	ListCodeNodesBySession(ctx context.Context, sessionID string) ([]CodeNode, error)
+	ListCodeNodesInRange(ctx context.Context, arg ListCodeNodesInRangeParams) ([]CodeNode, error)
+	ListDependenciesByRelation(ctx context.Context, relation sql.NullString) ([]Dependency, error)
 	ListDependenciesFrom(ctx context.Context, fromNode int64) ([]Dependency, error)
 	ListDependenciesTo(ctx context.Context, toNode int64) ([]Dependency, error)
+	ListEmbeddingsByDims(ctx context.Context, dims sql.NullInt64) ([]Embedding, error)
+	ListEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) ([]Embedding, error)
 	ListFilesByPath(ctx context.Context, path string) ([]File, error)
 	ListFilesBySession(ctx context.Context, sessionID string) ([]File, error)
 	ListLatestSessionFiles(ctx context.Context, sessionID string) ([]File, error)
 	ListMessagesBySession(ctx context.Context, sessionID string) ([]Message, error)
 	ListNewFiles(ctx context.Context) ([]File, error)
+	ListPendingAnalysis(ctx context.Context) ([]AnalysisMetadatum, error)
 	ListSessions(ctx context.Context) ([]Session, error)
+	SearchCodeNodesBySymbol(ctx context.Context, dollar_1 sql.NullString) ([]CodeNode, error)
 	UpdateAnalysisStatus(ctx context.Context, arg UpdateAnalysisStatusParams) (AnalysisMetadatum, error)
 	UpdateCodeNode(ctx context.Context, arg UpdateCodeNodeParams) (CodeNode, error)
+	UpdateEmbedding(ctx context.Context, arg UpdateEmbeddingParams) (Embedding, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 	UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error)
 }

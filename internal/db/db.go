@@ -24,6 +24,27 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.countAnalysisByStatusStmt, err = db.PrepareContext(ctx, countAnalysisByStatus); err != nil {
+		return nil, fmt.Errorf("error preparing query CountAnalysisByStatus: %w", err)
+	}
+	if q.countAnalysisByTierStmt, err = db.PrepareContext(ctx, countAnalysisByTier); err != nil {
+		return nil, fmt.Errorf("error preparing query CountAnalysisByTier: %w", err)
+	}
+	if q.countCodeNodesByKindStmt, err = db.PrepareContext(ctx, countCodeNodesByKind); err != nil {
+		return nil, fmt.Errorf("error preparing query CountCodeNodesByKind: %w", err)
+	}
+	if q.countCodeNodesBySessionStmt, err = db.PrepareContext(ctx, countCodeNodesBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query CountCodeNodesBySession: %w", err)
+	}
+	if q.countDependenciesFromStmt, err = db.PrepareContext(ctx, countDependenciesFrom); err != nil {
+		return nil, fmt.Errorf("error preparing query CountDependenciesFrom: %w", err)
+	}
+	if q.countDependenciesToStmt, err = db.PrepareContext(ctx, countDependenciesTo); err != nil {
+		return nil, fmt.Errorf("error preparing query CountDependenciesTo: %w", err)
+	}
+	if q.countEmbeddingsBySessionStmt, err = db.PrepareContext(ctx, countEmbeddingsBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query CountEmbeddingsBySession: %w", err)
+	}
 	if q.createAnalysisMetadataStmt, err = db.PrepareContext(ctx, createAnalysisMetadata); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateAnalysisMetadata: %w", err)
 	}
@@ -45,14 +66,38 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createSessionStmt, err = db.PrepareContext(ctx, createSession); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateSession: %w", err)
 	}
+	if q.deleteAnalysisByNodeStmt, err = db.PrepareContext(ctx, deleteAnalysisByNode); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAnalysisByNode: %w", err)
+	}
+	if q.deleteAnalysisBySessionStmt, err = db.PrepareContext(ctx, deleteAnalysisBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAnalysisBySession: %w", err)
+	}
+	if q.deleteAnalysisMetadataStmt, err = db.PrepareContext(ctx, deleteAnalysisMetadata); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAnalysisMetadata: %w", err)
+	}
 	if q.deleteCodeNodeStmt, err = db.PrepareContext(ctx, deleteCodeNode); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteCodeNode: %w", err)
+	}
+	if q.deleteCodeNodesByPathStmt, err = db.PrepareContext(ctx, deleteCodeNodesByPath); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteCodeNodesByPath: %w", err)
+	}
+	if q.deleteCodeNodesBySessionStmt, err = db.PrepareContext(ctx, deleteCodeNodesBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteCodeNodesBySession: %w", err)
+	}
+	if q.deleteDependenciesByNodeStmt, err = db.PrepareContext(ctx, deleteDependenciesByNode); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteDependenciesByNode: %w", err)
 	}
 	if q.deleteDependencyStmt, err = db.PrepareContext(ctx, deleteDependency); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteDependency: %w", err)
 	}
 	if q.deleteEmbeddingStmt, err = db.PrepareContext(ctx, deleteEmbedding); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteEmbedding: %w", err)
+	}
+	if q.deleteEmbeddingByNodeStmt, err = db.PrepareContext(ctx, deleteEmbeddingByNode); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteEmbeddingByNode: %w", err)
+	}
+	if q.deleteEmbeddingsBySessionStmt, err = db.PrepareContext(ctx, deleteEmbeddingsBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteEmbeddingsBySession: %w", err)
 	}
 	if q.deleteFileStmt, err = db.PrepareContext(ctx, deleteFile); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteFile: %w", err)
@@ -72,6 +117,18 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCodeNodeStmt, err = db.PrepareContext(ctx, getCodeNode); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCodeNode: %w", err)
 	}
+	if q.getCodeNodeByPathAndSymbolStmt, err = db.PrepareContext(ctx, getCodeNodeByPathAndSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCodeNodeByPathAndSymbol: %w", err)
+	}
+	if q.getDependencyStmt, err = db.PrepareContext(ctx, getDependency); err != nil {
+		return nil, fmt.Errorf("error preparing query GetDependency: %w", err)
+	}
+	if q.getEmbeddingStmt, err = db.PrepareContext(ctx, getEmbedding); err != nil {
+		return nil, fmt.Errorf("error preparing query GetEmbedding: %w", err)
+	}
+	if q.getEmbeddingByNodeStmt, err = db.PrepareContext(ctx, getEmbeddingByNode); err != nil {
+		return nil, fmt.Errorf("error preparing query GetEmbeddingByNode: %w", err)
+	}
 	if q.getEmbeddingByVectorIDStmt, err = db.PrepareContext(ctx, getEmbeddingByVectorID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetEmbeddingByVectorID: %w", err)
 	}
@@ -84,11 +141,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getFileByPathAndSessionStmt, err = db.PrepareContext(ctx, getFileByPathAndSession); err != nil {
 		return nil, fmt.Errorf("error preparing query GetFileByPathAndSession: %w", err)
 	}
+	if q.getLatestAnalysisByNodeStmt, err = db.PrepareContext(ctx, getLatestAnalysisByNode); err != nil {
+		return nil, fmt.Errorf("error preparing query GetLatestAnalysisByNode: %w", err)
+	}
 	if q.getMessageStmt, err = db.PrepareContext(ctx, getMessage); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMessage: %w", err)
 	}
 	if q.getSessionByIDStmt, err = db.PrepareContext(ctx, getSessionByID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSessionByID: %w", err)
+	}
+	if q.listAllDependenciesStmt, err = db.PrepareContext(ctx, listAllDependencies); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAllDependencies: %w", err)
 	}
 	if q.listAnalysisByNodeStmt, err = db.PrepareContext(ctx, listAnalysisByNode); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAnalysisByNode: %w", err)
@@ -96,17 +159,41 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listAnalysisBySessionStmt, err = db.PrepareContext(ctx, listAnalysisBySession); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAnalysisBySession: %w", err)
 	}
+	if q.listAnalysisByStatusStmt, err = db.PrepareContext(ctx, listAnalysisByStatus); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAnalysisByStatus: %w", err)
+	}
+	if q.listAnalysisByTierStmt, err = db.PrepareContext(ctx, listAnalysisByTier); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAnalysisByTier: %w", err)
+	}
+	if q.listCodeNodesByKindStmt, err = db.PrepareContext(ctx, listCodeNodesByKind); err != nil {
+		return nil, fmt.Errorf("error preparing query ListCodeNodesByKind: %w", err)
+	}
+	if q.listCodeNodesByLanguageStmt, err = db.PrepareContext(ctx, listCodeNodesByLanguage); err != nil {
+		return nil, fmt.Errorf("error preparing query ListCodeNodesByLanguage: %w", err)
+	}
 	if q.listCodeNodesByPathStmt, err = db.PrepareContext(ctx, listCodeNodesByPath); err != nil {
 		return nil, fmt.Errorf("error preparing query ListCodeNodesByPath: %w", err)
 	}
 	if q.listCodeNodesBySessionStmt, err = db.PrepareContext(ctx, listCodeNodesBySession); err != nil {
 		return nil, fmt.Errorf("error preparing query ListCodeNodesBySession: %w", err)
 	}
+	if q.listCodeNodesInRangeStmt, err = db.PrepareContext(ctx, listCodeNodesInRange); err != nil {
+		return nil, fmt.Errorf("error preparing query ListCodeNodesInRange: %w", err)
+	}
+	if q.listDependenciesByRelationStmt, err = db.PrepareContext(ctx, listDependenciesByRelation); err != nil {
+		return nil, fmt.Errorf("error preparing query ListDependenciesByRelation: %w", err)
+	}
 	if q.listDependenciesFromStmt, err = db.PrepareContext(ctx, listDependenciesFrom); err != nil {
 		return nil, fmt.Errorf("error preparing query ListDependenciesFrom: %w", err)
 	}
 	if q.listDependenciesToStmt, err = db.PrepareContext(ctx, listDependenciesTo); err != nil {
 		return nil, fmt.Errorf("error preparing query ListDependenciesTo: %w", err)
+	}
+	if q.listEmbeddingsByDimsStmt, err = db.PrepareContext(ctx, listEmbeddingsByDims); err != nil {
+		return nil, fmt.Errorf("error preparing query ListEmbeddingsByDims: %w", err)
+	}
+	if q.listEmbeddingsBySessionStmt, err = db.PrepareContext(ctx, listEmbeddingsBySession); err != nil {
+		return nil, fmt.Errorf("error preparing query ListEmbeddingsBySession: %w", err)
 	}
 	if q.listFilesByPathStmt, err = db.PrepareContext(ctx, listFilesByPath); err != nil {
 		return nil, fmt.Errorf("error preparing query ListFilesByPath: %w", err)
@@ -123,14 +210,23 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listNewFilesStmt, err = db.PrepareContext(ctx, listNewFiles); err != nil {
 		return nil, fmt.Errorf("error preparing query ListNewFiles: %w", err)
 	}
+	if q.listPendingAnalysisStmt, err = db.PrepareContext(ctx, listPendingAnalysis); err != nil {
+		return nil, fmt.Errorf("error preparing query ListPendingAnalysis: %w", err)
+	}
 	if q.listSessionsStmt, err = db.PrepareContext(ctx, listSessions); err != nil {
 		return nil, fmt.Errorf("error preparing query ListSessions: %w", err)
+	}
+	if q.searchCodeNodesBySymbolStmt, err = db.PrepareContext(ctx, searchCodeNodesBySymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query SearchCodeNodesBySymbol: %w", err)
 	}
 	if q.updateAnalysisStatusStmt, err = db.PrepareContext(ctx, updateAnalysisStatus); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAnalysisStatus: %w", err)
 	}
 	if q.updateCodeNodeStmt, err = db.PrepareContext(ctx, updateCodeNode); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateCodeNode: %w", err)
+	}
+	if q.updateEmbeddingStmt, err = db.PrepareContext(ctx, updateEmbedding); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateEmbedding: %w", err)
 	}
 	if q.updateMessageStmt, err = db.PrepareContext(ctx, updateMessage); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateMessage: %w", err)
@@ -143,6 +239,41 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.countAnalysisByStatusStmt != nil {
+		if cerr := q.countAnalysisByStatusStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countAnalysisByStatusStmt: %w", cerr)
+		}
+	}
+	if q.countAnalysisByTierStmt != nil {
+		if cerr := q.countAnalysisByTierStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countAnalysisByTierStmt: %w", cerr)
+		}
+	}
+	if q.countCodeNodesByKindStmt != nil {
+		if cerr := q.countCodeNodesByKindStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countCodeNodesByKindStmt: %w", cerr)
+		}
+	}
+	if q.countCodeNodesBySessionStmt != nil {
+		if cerr := q.countCodeNodesBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countCodeNodesBySessionStmt: %w", cerr)
+		}
+	}
+	if q.countDependenciesFromStmt != nil {
+		if cerr := q.countDependenciesFromStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countDependenciesFromStmt: %w", cerr)
+		}
+	}
+	if q.countDependenciesToStmt != nil {
+		if cerr := q.countDependenciesToStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countDependenciesToStmt: %w", cerr)
+		}
+	}
+	if q.countEmbeddingsBySessionStmt != nil {
+		if cerr := q.countEmbeddingsBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countEmbeddingsBySessionStmt: %w", cerr)
+		}
+	}
 	if q.createAnalysisMetadataStmt != nil {
 		if cerr := q.createAnalysisMetadataStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createAnalysisMetadataStmt: %w", cerr)
@@ -178,9 +309,39 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createSessionStmt: %w", cerr)
 		}
 	}
+	if q.deleteAnalysisByNodeStmt != nil {
+		if cerr := q.deleteAnalysisByNodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAnalysisByNodeStmt: %w", cerr)
+		}
+	}
+	if q.deleteAnalysisBySessionStmt != nil {
+		if cerr := q.deleteAnalysisBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAnalysisBySessionStmt: %w", cerr)
+		}
+	}
+	if q.deleteAnalysisMetadataStmt != nil {
+		if cerr := q.deleteAnalysisMetadataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAnalysisMetadataStmt: %w", cerr)
+		}
+	}
 	if q.deleteCodeNodeStmt != nil {
 		if cerr := q.deleteCodeNodeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteCodeNodeStmt: %w", cerr)
+		}
+	}
+	if q.deleteCodeNodesByPathStmt != nil {
+		if cerr := q.deleteCodeNodesByPathStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteCodeNodesByPathStmt: %w", cerr)
+		}
+	}
+	if q.deleteCodeNodesBySessionStmt != nil {
+		if cerr := q.deleteCodeNodesBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteCodeNodesBySessionStmt: %w", cerr)
+		}
+	}
+	if q.deleteDependenciesByNodeStmt != nil {
+		if cerr := q.deleteDependenciesByNodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteDependenciesByNodeStmt: %w", cerr)
 		}
 	}
 	if q.deleteDependencyStmt != nil {
@@ -191,6 +352,16 @@ func (q *Queries) Close() error {
 	if q.deleteEmbeddingStmt != nil {
 		if cerr := q.deleteEmbeddingStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteEmbeddingStmt: %w", cerr)
+		}
+	}
+	if q.deleteEmbeddingByNodeStmt != nil {
+		if cerr := q.deleteEmbeddingByNodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteEmbeddingByNodeStmt: %w", cerr)
+		}
+	}
+	if q.deleteEmbeddingsBySessionStmt != nil {
+		if cerr := q.deleteEmbeddingsBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteEmbeddingsBySessionStmt: %w", cerr)
 		}
 	}
 	if q.deleteFileStmt != nil {
@@ -223,6 +394,26 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getCodeNodeStmt: %w", cerr)
 		}
 	}
+	if q.getCodeNodeByPathAndSymbolStmt != nil {
+		if cerr := q.getCodeNodeByPathAndSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCodeNodeByPathAndSymbolStmt: %w", cerr)
+		}
+	}
+	if q.getDependencyStmt != nil {
+		if cerr := q.getDependencyStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getDependencyStmt: %w", cerr)
+		}
+	}
+	if q.getEmbeddingStmt != nil {
+		if cerr := q.getEmbeddingStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getEmbeddingStmt: %w", cerr)
+		}
+	}
+	if q.getEmbeddingByNodeStmt != nil {
+		if cerr := q.getEmbeddingByNodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getEmbeddingByNodeStmt: %w", cerr)
+		}
+	}
 	if q.getEmbeddingByVectorIDStmt != nil {
 		if cerr := q.getEmbeddingByVectorIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getEmbeddingByVectorIDStmt: %w", cerr)
@@ -243,6 +434,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getFileByPathAndSessionStmt: %w", cerr)
 		}
 	}
+	if q.getLatestAnalysisByNodeStmt != nil {
+		if cerr := q.getLatestAnalysisByNodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getLatestAnalysisByNodeStmt: %w", cerr)
+		}
+	}
 	if q.getMessageStmt != nil {
 		if cerr := q.getMessageStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getMessageStmt: %w", cerr)
@@ -251,6 +447,11 @@ func (q *Queries) Close() error {
 	if q.getSessionByIDStmt != nil {
 		if cerr := q.getSessionByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSessionByIDStmt: %w", cerr)
+		}
+	}
+	if q.listAllDependenciesStmt != nil {
+		if cerr := q.listAllDependenciesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAllDependenciesStmt: %w", cerr)
 		}
 	}
 	if q.listAnalysisByNodeStmt != nil {
@@ -263,6 +464,26 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listAnalysisBySessionStmt: %w", cerr)
 		}
 	}
+	if q.listAnalysisByStatusStmt != nil {
+		if cerr := q.listAnalysisByStatusStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAnalysisByStatusStmt: %w", cerr)
+		}
+	}
+	if q.listAnalysisByTierStmt != nil {
+		if cerr := q.listAnalysisByTierStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAnalysisByTierStmt: %w", cerr)
+		}
+	}
+	if q.listCodeNodesByKindStmt != nil {
+		if cerr := q.listCodeNodesByKindStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listCodeNodesByKindStmt: %w", cerr)
+		}
+	}
+	if q.listCodeNodesByLanguageStmt != nil {
+		if cerr := q.listCodeNodesByLanguageStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listCodeNodesByLanguageStmt: %w", cerr)
+		}
+	}
 	if q.listCodeNodesByPathStmt != nil {
 		if cerr := q.listCodeNodesByPathStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listCodeNodesByPathStmt: %w", cerr)
@@ -273,6 +494,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listCodeNodesBySessionStmt: %w", cerr)
 		}
 	}
+	if q.listCodeNodesInRangeStmt != nil {
+		if cerr := q.listCodeNodesInRangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listCodeNodesInRangeStmt: %w", cerr)
+		}
+	}
+	if q.listDependenciesByRelationStmt != nil {
+		if cerr := q.listDependenciesByRelationStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listDependenciesByRelationStmt: %w", cerr)
+		}
+	}
 	if q.listDependenciesFromStmt != nil {
 		if cerr := q.listDependenciesFromStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listDependenciesFromStmt: %w", cerr)
@@ -281,6 +512,16 @@ func (q *Queries) Close() error {
 	if q.listDependenciesToStmt != nil {
 		if cerr := q.listDependenciesToStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listDependenciesToStmt: %w", cerr)
+		}
+	}
+	if q.listEmbeddingsByDimsStmt != nil {
+		if cerr := q.listEmbeddingsByDimsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listEmbeddingsByDimsStmt: %w", cerr)
+		}
+	}
+	if q.listEmbeddingsBySessionStmt != nil {
+		if cerr := q.listEmbeddingsBySessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listEmbeddingsBySessionStmt: %w", cerr)
 		}
 	}
 	if q.listFilesByPathStmt != nil {
@@ -308,9 +549,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listNewFilesStmt: %w", cerr)
 		}
 	}
+	if q.listPendingAnalysisStmt != nil {
+		if cerr := q.listPendingAnalysisStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listPendingAnalysisStmt: %w", cerr)
+		}
+	}
 	if q.listSessionsStmt != nil {
 		if cerr := q.listSessionsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listSessionsStmt: %w", cerr)
+		}
+	}
+	if q.searchCodeNodesBySymbolStmt != nil {
+		if cerr := q.searchCodeNodesBySymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing searchCodeNodesBySymbolStmt: %w", cerr)
 		}
 	}
 	if q.updateAnalysisStatusStmt != nil {
@@ -321,6 +572,11 @@ func (q *Queries) Close() error {
 	if q.updateCodeNodeStmt != nil {
 		if cerr := q.updateCodeNodeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateCodeNodeStmt: %w", cerr)
+		}
+	}
+	if q.updateEmbeddingStmt != nil {
+		if cerr := q.updateEmbeddingStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateEmbeddingStmt: %w", cerr)
 		}
 	}
 	if q.updateMessageStmt != nil {
@@ -370,89 +626,153 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                          DBTX
-	tx                          *sql.Tx
-	createAnalysisMetadataStmt  *sql.Stmt
-	createCodeNodeStmt          *sql.Stmt
-	createDependencyStmt        *sql.Stmt
-	createEmbeddingStmt         *sql.Stmt
-	createFileStmt              *sql.Stmt
-	createMessageStmt           *sql.Stmt
-	createSessionStmt           *sql.Stmt
-	deleteCodeNodeStmt          *sql.Stmt
-	deleteDependencyStmt        *sql.Stmt
-	deleteEmbeddingStmt         *sql.Stmt
-	deleteFileStmt              *sql.Stmt
-	deleteMessageStmt           *sql.Stmt
-	deleteSessionStmt           *sql.Stmt
-	deleteSessionFilesStmt      *sql.Stmt
-	deleteSessionMessagesStmt   *sql.Stmt
-	getCodeNodeStmt             *sql.Stmt
-	getEmbeddingByVectorIDStmt  *sql.Stmt
-	getEmbeddingsByNodeStmt     *sql.Stmt
-	getFileStmt                 *sql.Stmt
-	getFileByPathAndSessionStmt *sql.Stmt
-	getMessageStmt              *sql.Stmt
-	getSessionByIDStmt          *sql.Stmt
-	listAnalysisByNodeStmt      *sql.Stmt
-	listAnalysisBySessionStmt   *sql.Stmt
-	listCodeNodesByPathStmt     *sql.Stmt
-	listCodeNodesBySessionStmt  *sql.Stmt
-	listDependenciesFromStmt    *sql.Stmt
-	listDependenciesToStmt      *sql.Stmt
-	listFilesByPathStmt         *sql.Stmt
-	listFilesBySessionStmt      *sql.Stmt
-	listLatestSessionFilesStmt  *sql.Stmt
-	listMessagesBySessionStmt   *sql.Stmt
-	listNewFilesStmt            *sql.Stmt
-	listSessionsStmt            *sql.Stmt
-	updateAnalysisStatusStmt    *sql.Stmt
-	updateCodeNodeStmt          *sql.Stmt
-	updateMessageStmt           *sql.Stmt
-	updateSessionStmt           *sql.Stmt
+	db                             DBTX
+	tx                             *sql.Tx
+	countAnalysisByStatusStmt      *sql.Stmt
+	countAnalysisByTierStmt        *sql.Stmt
+	countCodeNodesByKindStmt       *sql.Stmt
+	countCodeNodesBySessionStmt    *sql.Stmt
+	countDependenciesFromStmt      *sql.Stmt
+	countDependenciesToStmt        *sql.Stmt
+	countEmbeddingsBySessionStmt   *sql.Stmt
+	createAnalysisMetadataStmt     *sql.Stmt
+	createCodeNodeStmt             *sql.Stmt
+	createDependencyStmt           *sql.Stmt
+	createEmbeddingStmt            *sql.Stmt
+	createFileStmt                 *sql.Stmt
+	createMessageStmt              *sql.Stmt
+	createSessionStmt              *sql.Stmt
+	deleteAnalysisByNodeStmt       *sql.Stmt
+	deleteAnalysisBySessionStmt    *sql.Stmt
+	deleteAnalysisMetadataStmt     *sql.Stmt
+	deleteCodeNodeStmt             *sql.Stmt
+	deleteCodeNodesByPathStmt      *sql.Stmt
+	deleteCodeNodesBySessionStmt   *sql.Stmt
+	deleteDependenciesByNodeStmt   *sql.Stmt
+	deleteDependencyStmt           *sql.Stmt
+	deleteEmbeddingStmt            *sql.Stmt
+	deleteEmbeddingByNodeStmt      *sql.Stmt
+	deleteEmbeddingsBySessionStmt  *sql.Stmt
+	deleteFileStmt                 *sql.Stmt
+	deleteMessageStmt              *sql.Stmt
+	deleteSessionStmt              *sql.Stmt
+	deleteSessionFilesStmt         *sql.Stmt
+	deleteSessionMessagesStmt      *sql.Stmt
+	getCodeNodeStmt                *sql.Stmt
+	getCodeNodeByPathAndSymbolStmt *sql.Stmt
+	getDependencyStmt              *sql.Stmt
+	getEmbeddingStmt               *sql.Stmt
+	getEmbeddingByNodeStmt         *sql.Stmt
+	getEmbeddingByVectorIDStmt     *sql.Stmt
+	getEmbeddingsByNodeStmt        *sql.Stmt
+	getFileStmt                    *sql.Stmt
+	getFileByPathAndSessionStmt    *sql.Stmt
+	getLatestAnalysisByNodeStmt    *sql.Stmt
+	getMessageStmt                 *sql.Stmt
+	getSessionByIDStmt             *sql.Stmt
+	listAllDependenciesStmt        *sql.Stmt
+	listAnalysisByNodeStmt         *sql.Stmt
+	listAnalysisBySessionStmt      *sql.Stmt
+	listAnalysisByStatusStmt       *sql.Stmt
+	listAnalysisByTierStmt         *sql.Stmt
+	listCodeNodesByKindStmt        *sql.Stmt
+	listCodeNodesByLanguageStmt    *sql.Stmt
+	listCodeNodesByPathStmt        *sql.Stmt
+	listCodeNodesBySessionStmt     *sql.Stmt
+	listCodeNodesInRangeStmt       *sql.Stmt
+	listDependenciesByRelationStmt *sql.Stmt
+	listDependenciesFromStmt       *sql.Stmt
+	listDependenciesToStmt         *sql.Stmt
+	listEmbeddingsByDimsStmt       *sql.Stmt
+	listEmbeddingsBySessionStmt    *sql.Stmt
+	listFilesByPathStmt            *sql.Stmt
+	listFilesBySessionStmt         *sql.Stmt
+	listLatestSessionFilesStmt     *sql.Stmt
+	listMessagesBySessionStmt      *sql.Stmt
+	listNewFilesStmt               *sql.Stmt
+	listPendingAnalysisStmt        *sql.Stmt
+	listSessionsStmt               *sql.Stmt
+	searchCodeNodesBySymbolStmt    *sql.Stmt
+	updateAnalysisStatusStmt       *sql.Stmt
+	updateCodeNodeStmt             *sql.Stmt
+	updateEmbeddingStmt            *sql.Stmt
+	updateMessageStmt              *sql.Stmt
+	updateSessionStmt              *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                          tx,
-		tx:                          tx,
-		createAnalysisMetadataStmt:  q.createAnalysisMetadataStmt,
-		createCodeNodeStmt:          q.createCodeNodeStmt,
-		createDependencyStmt:        q.createDependencyStmt,
-		createEmbeddingStmt:         q.createEmbeddingStmt,
-		createFileStmt:              q.createFileStmt,
-		createMessageStmt:           q.createMessageStmt,
-		createSessionStmt:           q.createSessionStmt,
-		deleteCodeNodeStmt:          q.deleteCodeNodeStmt,
-		deleteDependencyStmt:        q.deleteDependencyStmt,
-		deleteEmbeddingStmt:         q.deleteEmbeddingStmt,
-		deleteFileStmt:              q.deleteFileStmt,
-		deleteMessageStmt:           q.deleteMessageStmt,
-		deleteSessionStmt:           q.deleteSessionStmt,
-		deleteSessionFilesStmt:      q.deleteSessionFilesStmt,
-		deleteSessionMessagesStmt:   q.deleteSessionMessagesStmt,
-		getCodeNodeStmt:             q.getCodeNodeStmt,
-		getEmbeddingByVectorIDStmt:  q.getEmbeddingByVectorIDStmt,
-		getEmbeddingsByNodeStmt:     q.getEmbeddingsByNodeStmt,
-		getFileStmt:                 q.getFileStmt,
-		getFileByPathAndSessionStmt: q.getFileByPathAndSessionStmt,
-		getMessageStmt:              q.getMessageStmt,
-		getSessionByIDStmt:          q.getSessionByIDStmt,
-		listAnalysisByNodeStmt:      q.listAnalysisByNodeStmt,
-		listAnalysisBySessionStmt:   q.listAnalysisBySessionStmt,
-		listCodeNodesByPathStmt:     q.listCodeNodesByPathStmt,
-		listCodeNodesBySessionStmt:  q.listCodeNodesBySessionStmt,
-		listDependenciesFromStmt:    q.listDependenciesFromStmt,
-		listDependenciesToStmt:      q.listDependenciesToStmt,
-		listFilesByPathStmt:         q.listFilesByPathStmt,
-		listFilesBySessionStmt:      q.listFilesBySessionStmt,
-		listLatestSessionFilesStmt:  q.listLatestSessionFilesStmt,
-		listMessagesBySessionStmt:   q.listMessagesBySessionStmt,
-		listNewFilesStmt:            q.listNewFilesStmt,
-		listSessionsStmt:            q.listSessionsStmt,
-		updateAnalysisStatusStmt:    q.updateAnalysisStatusStmt,
-		updateCodeNodeStmt:          q.updateCodeNodeStmt,
-		updateMessageStmt:           q.updateMessageStmt,
-		updateSessionStmt:           q.updateSessionStmt,
+		db:                             tx,
+		tx:                             tx,
+		countAnalysisByStatusStmt:      q.countAnalysisByStatusStmt,
+		countAnalysisByTierStmt:        q.countAnalysisByTierStmt,
+		countCodeNodesByKindStmt:       q.countCodeNodesByKindStmt,
+		countCodeNodesBySessionStmt:    q.countCodeNodesBySessionStmt,
+		countDependenciesFromStmt:      q.countDependenciesFromStmt,
+		countDependenciesToStmt:        q.countDependenciesToStmt,
+		countEmbeddingsBySessionStmt:   q.countEmbeddingsBySessionStmt,
+		createAnalysisMetadataStmt:     q.createAnalysisMetadataStmt,
+		createCodeNodeStmt:             q.createCodeNodeStmt,
+		createDependencyStmt:           q.createDependencyStmt,
+		createEmbeddingStmt:            q.createEmbeddingStmt,
+		createFileStmt:                 q.createFileStmt,
+		createMessageStmt:              q.createMessageStmt,
+		createSessionStmt:              q.createSessionStmt,
+		deleteAnalysisByNodeStmt:       q.deleteAnalysisByNodeStmt,
+		deleteAnalysisBySessionStmt:    q.deleteAnalysisBySessionStmt,
+		deleteAnalysisMetadataStmt:     q.deleteAnalysisMetadataStmt,
+		deleteCodeNodeStmt:             q.deleteCodeNodeStmt,
+		deleteCodeNodesByPathStmt:      q.deleteCodeNodesByPathStmt,
+		deleteCodeNodesBySessionStmt:   q.deleteCodeNodesBySessionStmt,
+		deleteDependenciesByNodeStmt:   q.deleteDependenciesByNodeStmt,
+		deleteDependencyStmt:           q.deleteDependencyStmt,
+		deleteEmbeddingStmt:            q.deleteEmbeddingStmt,
+		deleteEmbeddingByNodeStmt:      q.deleteEmbeddingByNodeStmt,
+		deleteEmbeddingsBySessionStmt:  q.deleteEmbeddingsBySessionStmt,
+		deleteFileStmt:                 q.deleteFileStmt,
+		deleteMessageStmt:              q.deleteMessageStmt,
+		deleteSessionStmt:              q.deleteSessionStmt,
+		deleteSessionFilesStmt:         q.deleteSessionFilesStmt,
+		deleteSessionMessagesStmt:      q.deleteSessionMessagesStmt,
+		getCodeNodeStmt:                q.getCodeNodeStmt,
+		getCodeNodeByPathAndSymbolStmt: q.getCodeNodeByPathAndSymbolStmt,
+		getDependencyStmt:              q.getDependencyStmt,
+		getEmbeddingStmt:               q.getEmbeddingStmt,
+		getEmbeddingByNodeStmt:         q.getEmbeddingByNodeStmt,
+		getEmbeddingByVectorIDStmt:     q.getEmbeddingByVectorIDStmt,
+		getEmbeddingsByNodeStmt:        q.getEmbeddingsByNodeStmt,
+		getFileStmt:                    q.getFileStmt,
+		getFileByPathAndSessionStmt:    q.getFileByPathAndSessionStmt,
+		getLatestAnalysisByNodeStmt:    q.getLatestAnalysisByNodeStmt,
+		getMessageStmt:                 q.getMessageStmt,
+		getSessionByIDStmt:             q.getSessionByIDStmt,
+		listAllDependenciesStmt:        q.listAllDependenciesStmt,
+		listAnalysisByNodeStmt:         q.listAnalysisByNodeStmt,
+		listAnalysisBySessionStmt:      q.listAnalysisBySessionStmt,
+		listAnalysisByStatusStmt:       q.listAnalysisByStatusStmt,
+		listAnalysisByTierStmt:         q.listAnalysisByTierStmt,
+		listCodeNodesByKindStmt:        q.listCodeNodesByKindStmt,
+		listCodeNodesByLanguageStmt:    q.listCodeNodesByLanguageStmt,
+		listCodeNodesByPathStmt:        q.listCodeNodesByPathStmt,
+		listCodeNodesBySessionStmt:     q.listCodeNodesBySessionStmt,
+		listCodeNodesInRangeStmt:       q.listCodeNodesInRangeStmt,
+		listDependenciesByRelationStmt: q.listDependenciesByRelationStmt,
+		listDependenciesFromStmt:       q.listDependenciesFromStmt,
+		listDependenciesToStmt:         q.listDependenciesToStmt,
+		listEmbeddingsByDimsStmt:       q.listEmbeddingsByDimsStmt,
+		listEmbeddingsBySessionStmt:    q.listEmbeddingsBySessionStmt,
+		listFilesByPathStmt:            q.listFilesByPathStmt,
+		listFilesBySessionStmt:         q.listFilesBySessionStmt,
+		listLatestSessionFilesStmt:     q.listLatestSessionFilesStmt,
+		listMessagesBySessionStmt:      q.listMessagesBySessionStmt,
+		listNewFilesStmt:               q.listNewFilesStmt,
+		listPendingAnalysisStmt:        q.listPendingAnalysisStmt,
+		listSessionsStmt:               q.listSessionsStmt,
+		searchCodeNodesBySymbolStmt:    q.searchCodeNodesBySymbolStmt,
+		updateAnalysisStatusStmt:       q.updateAnalysisStatusStmt,
+		updateCodeNodeStmt:             q.updateCodeNodeStmt,
+		updateEmbeddingStmt:            q.updateEmbeddingStmt,
+		updateMessageStmt:              q.updateMessageStmt,
+		updateSessionStmt:              q.updateSessionStmt,
 	}
 }

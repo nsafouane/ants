@@ -10,6 +10,37 @@ import (
 	"database/sql"
 )
 
+const countCodeNodesByKind = `-- name: CountCodeNodesByKind :one
+SELECT COUNT(*)
+FROM code_nodes
+WHERE kind = ? AND session_id = ?
+`
+
+type CountCodeNodesByKindParams struct {
+	Kind      sql.NullString `json:"kind"`
+	SessionID string         `json:"session_id"`
+}
+
+func (q *Queries) CountCodeNodesByKind(ctx context.Context, arg CountCodeNodesByKindParams) (int64, error) {
+	row := q.queryRow(ctx, q.countCodeNodesByKindStmt, countCodeNodesByKind, arg.Kind, arg.SessionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countCodeNodesBySession = `-- name: CountCodeNodesBySession :one
+SELECT COUNT(*)
+FROM code_nodes
+WHERE session_id = ?
+`
+
+func (q *Queries) CountCodeNodesBySession(ctx context.Context, sessionID string) (int64, error) {
+	row := q.queryRow(ctx, q.countCodeNodesBySessionStmt, countCodeNodesBySession, sessionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCodeNode = `-- name: CreateCodeNode :one
 INSERT INTO code_nodes (
     session_id,
@@ -77,6 +108,26 @@ func (q *Queries) DeleteCodeNode(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteCodeNodesByPath = `-- name: DeleteCodeNodesByPath :exec
+DELETE FROM code_nodes
+WHERE path = ?
+`
+
+func (q *Queries) DeleteCodeNodesByPath(ctx context.Context, path string) error {
+	_, err := q.exec(ctx, q.deleteCodeNodesByPathStmt, deleteCodeNodesByPath, path)
+	return err
+}
+
+const deleteCodeNodesBySession = `-- name: DeleteCodeNodesBySession :exec
+DELETE FROM code_nodes
+WHERE session_id = ?
+`
+
+func (q *Queries) DeleteCodeNodesBySession(ctx context.Context, sessionID string) error {
+	_, err := q.exec(ctx, q.deleteCodeNodesBySessionStmt, deleteCodeNodesBySession, sessionID)
+	return err
+}
+
 const getCodeNode = `-- name: GetCodeNode :one
 SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
 FROM code_nodes
@@ -101,6 +152,121 @@ func (q *Queries) GetCodeNode(ctx context.Context, id int64) (CodeNode, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getCodeNodeByPathAndSymbol = `-- name: GetCodeNodeByPathAndSymbol :one
+SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
+FROM code_nodes
+WHERE path = ? AND symbol = ?
+LIMIT 1
+`
+
+type GetCodeNodeByPathAndSymbolParams struct {
+	Path   string         `json:"path"`
+	Symbol sql.NullString `json:"symbol"`
+}
+
+func (q *Queries) GetCodeNodeByPathAndSymbol(ctx context.Context, arg GetCodeNodeByPathAndSymbolParams) (CodeNode, error) {
+	row := q.queryRow(ctx, q.getCodeNodeByPathAndSymbolStmt, getCodeNodeByPathAndSymbol, arg.Path, arg.Symbol)
+	var i CodeNode
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.Path,
+		&i.Language,
+		&i.Symbol,
+		&i.Kind,
+		&i.StartLine,
+		&i.EndLine,
+		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const listCodeNodesByKind = `-- name: ListCodeNodesByKind :many
+SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
+FROM code_nodes
+WHERE kind = ?
+ORDER BY path, start_line
+`
+
+func (q *Queries) ListCodeNodesByKind(ctx context.Context, kind sql.NullString) ([]CodeNode, error) {
+	rows, err := q.query(ctx, q.listCodeNodesByKindStmt, listCodeNodesByKind, kind)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CodeNode{}
+	for rows.Next() {
+		var i CodeNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SessionID,
+			&i.Path,
+			&i.Language,
+			&i.Symbol,
+			&i.Kind,
+			&i.StartLine,
+			&i.EndLine,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCodeNodesByLanguage = `-- name: ListCodeNodesByLanguage :many
+SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
+FROM code_nodes
+WHERE language = ?
+ORDER BY path, start_line
+`
+
+func (q *Queries) ListCodeNodesByLanguage(ctx context.Context, language sql.NullString) ([]CodeNode, error) {
+	rows, err := q.query(ctx, q.listCodeNodesByLanguageStmt, listCodeNodesByLanguage, language)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CodeNode{}
+	for rows.Next() {
+		var i CodeNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SessionID,
+			&i.Path,
+			&i.Language,
+			&i.Symbol,
+			&i.Kind,
+			&i.StartLine,
+			&i.EndLine,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listCodeNodesByPath = `-- name: ListCodeNodesByPath :many
@@ -154,6 +320,96 @@ ORDER BY path, start_line
 
 func (q *Queries) ListCodeNodesBySession(ctx context.Context, sessionID string) ([]CodeNode, error) {
 	rows, err := q.query(ctx, q.listCodeNodesBySessionStmt, listCodeNodesBySession, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CodeNode{}
+	for rows.Next() {
+		var i CodeNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SessionID,
+			&i.Path,
+			&i.Language,
+			&i.Symbol,
+			&i.Kind,
+			&i.StartLine,
+			&i.EndLine,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCodeNodesInRange = `-- name: ListCodeNodesInRange :many
+SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
+FROM code_nodes
+WHERE path = ? AND start_line <= ? AND end_line >= ?
+ORDER BY start_line
+`
+
+type ListCodeNodesInRangeParams struct {
+	Path      string        `json:"path"`
+	StartLine sql.NullInt64 `json:"start_line"`
+	EndLine   sql.NullInt64 `json:"end_line"`
+}
+
+func (q *Queries) ListCodeNodesInRange(ctx context.Context, arg ListCodeNodesInRangeParams) ([]CodeNode, error) {
+	rows, err := q.query(ctx, q.listCodeNodesInRangeStmt, listCodeNodesInRange, arg.Path, arg.StartLine, arg.EndLine)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CodeNode{}
+	for rows.Next() {
+		var i CodeNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.SessionID,
+			&i.Path,
+			&i.Language,
+			&i.Symbol,
+			&i.Kind,
+			&i.StartLine,
+			&i.EndLine,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchCodeNodesBySymbol = `-- name: SearchCodeNodesBySymbol :many
+SELECT id, session_id, path, language, symbol, kind, start_line, end_line, metadata, created_at, updated_at
+FROM code_nodes
+WHERE symbol LIKE ? || '%'
+ORDER BY path, start_line
+`
+
+func (q *Queries) SearchCodeNodesBySymbol(ctx context.Context, dollar_1 sql.NullString) ([]CodeNode, error) {
+	rows, err := q.query(ctx, q.searchCodeNodesBySymbolStmt, searchCodeNodesBySymbol, dollar_1)
 	if err != nil {
 		return nil, err
 	}

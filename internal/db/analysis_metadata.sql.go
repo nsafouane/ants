@@ -10,6 +10,42 @@ import (
 	"database/sql"
 )
 
+const countAnalysisByStatus = `-- name: CountAnalysisByStatus :one
+SELECT COUNT(*)
+FROM analysis_metadata
+WHERE status = ? AND session_id = ?
+`
+
+type CountAnalysisByStatusParams struct {
+	Status    sql.NullString `json:"status"`
+	SessionID sql.NullString `json:"session_id"`
+}
+
+func (q *Queries) CountAnalysisByStatus(ctx context.Context, arg CountAnalysisByStatusParams) (int64, error) {
+	row := q.queryRow(ctx, q.countAnalysisByStatusStmt, countAnalysisByStatus, arg.Status, arg.SessionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countAnalysisByTier = `-- name: CountAnalysisByTier :one
+SELECT COUNT(*)
+FROM analysis_metadata
+WHERE tier = ? AND session_id = ?
+`
+
+type CountAnalysisByTierParams struct {
+	Tier      int64          `json:"tier"`
+	SessionID sql.NullString `json:"session_id"`
+}
+
+func (q *Queries) CountAnalysisByTier(ctx context.Context, arg CountAnalysisByTierParams) (int64, error) {
+	row := q.queryRow(ctx, q.countAnalysisByTierStmt, countAnalysisByTier, arg.Tier, arg.SessionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAnalysisMetadata = `-- name: CreateAnalysisMetadata :one
 INSERT INTO analysis_metadata (
     node_id,
@@ -46,6 +82,67 @@ func (q *Queries) CreateAnalysisMetadata(ctx context.Context, arg CreateAnalysis
 		arg.StartedAt,
 		arg.CompletedAt,
 	)
+	var i AnalysisMetadatum
+	err := row.Scan(
+		&i.ID,
+		&i.NodeID,
+		&i.SessionID,
+		&i.Tier,
+		&i.Result,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteAnalysisByNode = `-- name: DeleteAnalysisByNode :exec
+DELETE FROM analysis_metadata
+WHERE node_id = ?
+`
+
+func (q *Queries) DeleteAnalysisByNode(ctx context.Context, nodeID sql.NullInt64) error {
+	_, err := q.exec(ctx, q.deleteAnalysisByNodeStmt, deleteAnalysisByNode, nodeID)
+	return err
+}
+
+const deleteAnalysisBySession = `-- name: DeleteAnalysisBySession :exec
+DELETE FROM analysis_metadata
+WHERE session_id = ?
+`
+
+func (q *Queries) DeleteAnalysisBySession(ctx context.Context, sessionID sql.NullString) error {
+	_, err := q.exec(ctx, q.deleteAnalysisBySessionStmt, deleteAnalysisBySession, sessionID)
+	return err
+}
+
+const deleteAnalysisMetadata = `-- name: DeleteAnalysisMetadata :exec
+DELETE FROM analysis_metadata
+WHERE id = ?
+`
+
+func (q *Queries) DeleteAnalysisMetadata(ctx context.Context, id int64) error {
+	_, err := q.exec(ctx, q.deleteAnalysisMetadataStmt, deleteAnalysisMetadata, id)
+	return err
+}
+
+const getLatestAnalysisByNode = `-- name: GetLatestAnalysisByNode :one
+SELECT id, node_id, session_id, tier, result, status, started_at, completed_at, created_at, updated_at
+FROM analysis_metadata
+WHERE node_id = ? AND tier = ?
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetLatestAnalysisByNodeParams struct {
+	NodeID sql.NullInt64 `json:"node_id"`
+	Tier   int64         `json:"tier"`
+}
+
+func (q *Queries) GetLatestAnalysisByNode(ctx context.Context, arg GetLatestAnalysisByNodeParams) (AnalysisMetadatum, error) {
+	row := q.queryRow(ctx, q.getLatestAnalysisByNodeStmt, getLatestAnalysisByNode, arg.NodeID, arg.Tier)
 	var i AnalysisMetadatum
 	err := row.Scan(
 		&i.ID,
@@ -112,6 +209,129 @@ ORDER BY created_at DESC
 
 func (q *Queries) ListAnalysisBySession(ctx context.Context, sessionID sql.NullString) ([]AnalysisMetadatum, error) {
 	rows, err := q.query(ctx, q.listAnalysisBySessionStmt, listAnalysisBySession, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AnalysisMetadatum{}
+	for rows.Next() {
+		var i AnalysisMetadatum
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.SessionID,
+			&i.Tier,
+			&i.Result,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAnalysisByStatus = `-- name: ListAnalysisByStatus :many
+SELECT id, node_id, session_id, tier, result, status, started_at, completed_at, created_at, updated_at
+FROM analysis_metadata
+WHERE status = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListAnalysisByStatus(ctx context.Context, status sql.NullString) ([]AnalysisMetadatum, error) {
+	rows, err := q.query(ctx, q.listAnalysisByStatusStmt, listAnalysisByStatus, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AnalysisMetadatum{}
+	for rows.Next() {
+		var i AnalysisMetadatum
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.SessionID,
+			&i.Tier,
+			&i.Result,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAnalysisByTier = `-- name: ListAnalysisByTier :many
+SELECT id, node_id, session_id, tier, result, status, started_at, completed_at, created_at, updated_at
+FROM analysis_metadata
+WHERE tier = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListAnalysisByTier(ctx context.Context, tier int64) ([]AnalysisMetadatum, error) {
+	rows, err := q.query(ctx, q.listAnalysisByTierStmt, listAnalysisByTier, tier)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AnalysisMetadatum{}
+	for rows.Next() {
+		var i AnalysisMetadatum
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.SessionID,
+			&i.Tier,
+			&i.Result,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingAnalysis = `-- name: ListPendingAnalysis :many
+SELECT id, node_id, session_id, tier, result, status, started_at, completed_at, created_at, updated_at
+FROM analysis_metadata
+WHERE status = 'pending' OR status = 'running'
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListPendingAnalysis(ctx context.Context) ([]AnalysisMetadatum, error) {
+	rows, err := q.query(ctx, q.listPendingAnalysisStmt, listPendingAnalysis)
 	if err != nil {
 		return nil, err
 	}

@@ -118,6 +118,104 @@ func (m *MockQuerier) UpdateSession(ctx context.Context, arg db.UpdateSessionPar
 	return db.Session{}, nil
 }
 
+// Additional methods to satisfy the complete db.Querier interface
+func (m *MockQuerier) CountAnalysisByStatus(ctx context.Context, arg db.CountAnalysisByStatusParams) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountAnalysisByTier(ctx context.Context, arg db.CountAnalysisByTierParams) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountCodeNodesByKind(ctx context.Context, arg db.CountCodeNodesByKindParams) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountCodeNodesBySession(ctx context.Context, sessionID string) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountDependenciesFrom(ctx context.Context, fromNode int64) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountDependenciesTo(ctx context.Context, toNode int64) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) CountEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) (int64, error) {
+	return 0, nil
+}
+func (m *MockQuerier) DeleteAnalysisByNode(ctx context.Context, nodeID sql.NullInt64) error {
+	return nil
+}
+func (m *MockQuerier) DeleteAnalysisBySession(ctx context.Context, sessionID sql.NullString) error {
+	return nil
+}
+func (m *MockQuerier) DeleteAnalysisMetadata(ctx context.Context, id int64) error {
+	return nil
+}
+func (m *MockQuerier) DeleteCodeNodesByPath(ctx context.Context, path string) error {
+	return nil
+}
+func (m *MockQuerier) DeleteCodeNodesBySession(ctx context.Context, sessionID string) error {
+	return nil
+}
+func (m *MockQuerier) DeleteDependenciesByNode(ctx context.Context, arg db.DeleteDependenciesByNodeParams) error {
+	return nil
+}
+func (m *MockQuerier) DeleteEmbeddingByNode(ctx context.Context, nodeID int64) error {
+	return nil
+}
+func (m *MockQuerier) DeleteEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) error {
+	return nil
+}
+func (m *MockQuerier) GetCodeNodeByPathAndSymbol(ctx context.Context, arg db.GetCodeNodeByPathAndSymbolParams) (db.CodeNode, error) {
+	return db.CodeNode{}, nil
+}
+func (m *MockQuerier) GetDependency(ctx context.Context, arg db.GetDependencyParams) (db.Dependency, error) {
+	return db.Dependency{}, nil
+}
+func (m *MockQuerier) GetEmbedding(ctx context.Context, id int64) (db.Embedding, error) {
+	return db.Embedding{}, nil
+}
+func (m *MockQuerier) GetEmbeddingByNode(ctx context.Context, nodeID int64) (db.Embedding, error) {
+	return db.Embedding{}, nil
+}
+func (m *MockQuerier) GetLatestAnalysisByNode(ctx context.Context, arg db.GetLatestAnalysisByNodeParams) (db.AnalysisMetadatum, error) {
+	return db.AnalysisMetadatum{}, nil
+}
+func (m *MockQuerier) ListAllDependencies(ctx context.Context) ([]db.ListAllDependenciesRow, error) {
+	return []db.ListAllDependenciesRow{}, nil
+}
+func (m *MockQuerier) ListAnalysisByStatus(ctx context.Context, status sql.NullString) ([]db.AnalysisMetadatum, error) {
+	return []db.AnalysisMetadatum{}, nil
+}
+func (m *MockQuerier) ListAnalysisByTier(ctx context.Context, tier int64) ([]db.AnalysisMetadatum, error) {
+	return []db.AnalysisMetadatum{}, nil
+}
+func (m *MockQuerier) ListCodeNodesByKind(ctx context.Context, kind sql.NullString) ([]db.CodeNode, error) {
+	return []db.CodeNode{}, nil
+}
+func (m *MockQuerier) ListCodeNodesByLanguage(ctx context.Context, language sql.NullString) ([]db.CodeNode, error) {
+	return []db.CodeNode{}, nil
+}
+func (m *MockQuerier) ListCodeNodesInRange(ctx context.Context, arg db.ListCodeNodesInRangeParams) ([]db.CodeNode, error) {
+	return []db.CodeNode{}, nil
+}
+func (m *MockQuerier) ListDependenciesByRelation(ctx context.Context, relation sql.NullString) ([]db.Dependency, error) {
+	return []db.Dependency{}, nil
+}
+func (m *MockQuerier) ListEmbeddingsByDims(ctx context.Context, dims sql.NullInt64) ([]db.Embedding, error) {
+	return []db.Embedding{}, nil
+}
+func (m *MockQuerier) ListEmbeddingsBySession(ctx context.Context, sessionID sql.NullString) ([]db.Embedding, error) {
+	return []db.Embedding{}, nil
+}
+func (m *MockQuerier) ListPendingAnalysis(ctx context.Context) ([]db.AnalysisMetadatum, error) {
+	return []db.AnalysisMetadatum{}, nil
+}
+func (m *MockQuerier) SearchCodeNodesBySymbol(ctx context.Context, symbol sql.NullString) ([]db.CodeNode, error) {
+	return []db.CodeNode{}, nil
+}
+func (m *MockQuerier) UpdateEmbedding(ctx context.Context, arg db.UpdateEmbeddingParams) (db.Embedding, error) {
+	return db.Embedding{}, nil
+}
+
 func TestNewSessionContextEngine(t *testing.T) {
 	mockDB := &MockQuerier{}
 	config := &config.ContextEngineConfig{

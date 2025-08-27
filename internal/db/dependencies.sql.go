@@ -10,6 +10,32 @@ import (
 	"database/sql"
 )
 
+const countDependenciesFrom = `-- name: CountDependenciesFrom :one
+SELECT COUNT(*)
+FROM dependencies
+WHERE from_node = ?
+`
+
+func (q *Queries) CountDependenciesFrom(ctx context.Context, fromNode int64) (int64, error) {
+	row := q.queryRow(ctx, q.countDependenciesFromStmt, countDependenciesFrom, fromNode)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countDependenciesTo = `-- name: CountDependenciesTo :one
+SELECT COUNT(*)
+FROM dependencies
+WHERE to_node = ?
+`
+
+func (q *Queries) CountDependenciesTo(ctx context.Context, toNode int64) (int64, error) {
+	row := q.queryRow(ctx, q.countDependenciesToStmt, countDependenciesTo, toNode)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createDependency = `-- name: CreateDependency :one
 INSERT INTO dependencies (
     from_node,
@@ -49,6 +75,21 @@ func (q *Queries) CreateDependency(ctx context.Context, arg CreateDependencyPara
 	return i, err
 }
 
+const deleteDependenciesByNode = `-- name: DeleteDependenciesByNode :exec
+DELETE FROM dependencies
+WHERE from_node = ? OR to_node = ?
+`
+
+type DeleteDependenciesByNodeParams struct {
+	FromNode int64 `json:"from_node"`
+	ToNode   int64 `json:"to_node"`
+}
+
+func (q *Queries) DeleteDependenciesByNode(ctx context.Context, arg DeleteDependenciesByNodeParams) error {
+	_, err := q.exec(ctx, q.deleteDependenciesByNodeStmt, deleteDependenciesByNode, arg.FromNode, arg.ToNode)
+	return err
+}
+
 const deleteDependency = `-- name: DeleteDependency :exec
 DELETE FROM dependencies
 WHERE id = ?
@@ -57,6 +98,127 @@ WHERE id = ?
 func (q *Queries) DeleteDependency(ctx context.Context, id int64) error {
 	_, err := q.exec(ctx, q.deleteDependencyStmt, deleteDependency, id)
 	return err
+}
+
+const getDependency = `-- name: GetDependency :one
+SELECT id, from_node, to_node, relation, metadata, created_at
+FROM dependencies
+WHERE from_node = ? AND to_node = ? AND relation = ?
+LIMIT 1
+`
+
+type GetDependencyParams struct {
+	FromNode int64          `json:"from_node"`
+	ToNode   int64          `json:"to_node"`
+	Relation sql.NullString `json:"relation"`
+}
+
+func (q *Queries) GetDependency(ctx context.Context, arg GetDependencyParams) (Dependency, error) {
+	row := q.queryRow(ctx, q.getDependencyStmt, getDependency, arg.FromNode, arg.ToNode, arg.Relation)
+	var i Dependency
+	err := row.Scan(
+		&i.ID,
+		&i.FromNode,
+		&i.ToNode,
+		&i.Relation,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listAllDependencies = `-- name: ListAllDependencies :many
+SELECT d.id, d.from_node, d.to_node, d.relation, d.metadata, d.created_at, 
+       cn1.path as from_path, cn1.symbol as from_symbol,
+       cn2.path as to_path, cn2.symbol as to_symbol
+FROM dependencies d
+JOIN code_nodes cn1 ON d.from_node = cn1.id
+JOIN code_nodes cn2 ON d.to_node = cn2.id
+ORDER BY d.id
+`
+
+type ListAllDependenciesRow struct {
+	ID         int64          `json:"id"`
+	FromNode   int64          `json:"from_node"`
+	ToNode     int64          `json:"to_node"`
+	Relation   sql.NullString `json:"relation"`
+	Metadata   interface{}    `json:"metadata"`
+	CreatedAt  sql.NullTime   `json:"created_at"`
+	FromPath   string         `json:"from_path"`
+	FromSymbol sql.NullString `json:"from_symbol"`
+	ToPath     string         `json:"to_path"`
+	ToSymbol   sql.NullString `json:"to_symbol"`
+}
+
+func (q *Queries) ListAllDependencies(ctx context.Context) ([]ListAllDependenciesRow, error) {
+	rows, err := q.query(ctx, q.listAllDependenciesStmt, listAllDependencies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAllDependenciesRow{}
+	for rows.Next() {
+		var i ListAllDependenciesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromNode,
+			&i.ToNode,
+			&i.Relation,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.FromPath,
+			&i.FromSymbol,
+			&i.ToPath,
+			&i.ToSymbol,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDependenciesByRelation = `-- name: ListDependenciesByRelation :many
+SELECT id, from_node, to_node, relation, metadata, created_at
+FROM dependencies
+WHERE relation = ?
+ORDER BY id
+`
+
+func (q *Queries) ListDependenciesByRelation(ctx context.Context, relation sql.NullString) ([]Dependency, error) {
+	rows, err := q.query(ctx, q.listDependenciesByRelationStmt, listDependenciesByRelation, relation)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Dependency{}
+	for rows.Next() {
+		var i Dependency
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromNode,
+			&i.ToNode,
+			&i.Relation,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listDependenciesFrom = `-- name: ListDependenciesFrom :many
