@@ -152,20 +152,36 @@ type ContextEngineMode string
 
 const (
 	ContextEngineModePerformance ContextEngineMode = "performance"
-	ContextEngineModeOnDemand     ContextEngineMode = "on_demand"
-	ContextEngineModeEco          ContextEngineMode = "eco"
+	ContextEngineModeOnDemand    ContextEngineMode = "on_demand"
+	ContextEngineModeEco         ContextEngineMode = "eco"
 )
 
-// VectorDBConfig contains minimal configuration to connect to a vector store.
+// VectorDBConfig contains configuration to connect to a vector store.
 type VectorDBConfig struct {
 	// Type of vector DB (e.g., "qdrant", "pinecone", "sqlite")
 	Type string `json:"type,omitempty" jsonschema:"description=Vector database type,example=qdrant"`
 	// URL or endpoint for the vector DB service
 	URL string `json:"url,omitempty" jsonschema:"description=Vector DB endpoint URL,format=uri,example=http://localhost:6333"`
+	// Port for the vector DB service (defaults to 6334 for Qdrant)
+	Port int `json:"port,omitempty" jsonschema:"description=Port for the vector DB service,minimum=1,maximum=65535,default=6334"`
 	// API key or token if required by the vector DB
 	APIKey string `json:"api_key,omitempty" jsonschema:"description=API key for the vector DB service"`
 	// Collection or namespace name to use
 	Collection string `json:"collection,omitempty" jsonschema:"description=Collection or namespace name in the vector DB,example=code_nodes"`
+	// UseTLS enables TLS encryption for connection (recommended for production)
+	UseTLS bool `json:"use_tls,omitempty" jsonschema:"description=Enable TLS encryption for vector DB connection,default=false"`
+	// TLSInsecureSkipVerify skips TLS certificate verification (for testing only)
+	TLSInsecureSkipVerify bool `json:"tls_insecure_skip_verify,omitempty" jsonschema:"description=Skip TLS certificate verification (testing only),default=false"`
+	// ConnectionTimeoutMs sets the connection timeout in milliseconds
+	ConnectionTimeoutMs int `json:"connection_timeout_ms,omitempty" jsonschema:"description=Connection timeout in milliseconds,minimum=100,default=5000"`
+	// RequestTimeoutMs sets the request timeout in milliseconds
+	RequestTimeoutMs int `json:"request_timeout_ms,omitempty" jsonschema:"description=Request timeout in milliseconds,minimum=100,default=30000"`
+	// BatchSize for batch operations (upsert, delete)
+	BatchSize int `json:"batch_size,omitempty" jsonschema:"description=Batch size for vector operations,minimum=1,maximum=1000,default=100"`
+	// VectorSize defines the dimensionality of vectors stored in this collection
+	VectorSize int `json:"vector_size,omitempty" jsonschema:"description=Vector dimensionality for embeddings,minimum=1,maximum=65536,default=1536"`
+	// Distance metric for similarity calculation (Cosine, Euclid, Dot)
+	DistanceMetric string `json:"distance_metric,omitempty" jsonschema:"description=Distance metric for similarity search,enum=Cosine,enum=Euclid,enum=Dot,default=Cosine"`
 }
 
 // ContextEngineConfig holds configuration specific to the Context Engine feature.

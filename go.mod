@@ -34,6 +34,7 @@ require (
 	github.com/nxadm/tail v1.4.11
 	github.com/openai/openai-go v1.12.0
 	github.com/pressly/goose/v3 v3.24.3
+	github.com/qdrant/go-client v1.15.2
 	github.com/qjebbs/go-jsons v0.0.0-20221222033332-a534c5fc1c4c
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/sahilm/fuzzy v0.1.1
@@ -47,7 +48,10 @@ require (
 	mvdan.cc/sh/v3 v3.12.1-0.20250726150758-e256f53bade8
 )
 
-require github.com/stretchr/objx v0.5.2 // indirect
+require (
+	github.com/mattn/go-sqlite3 v1.14.32 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
+)
 
 require (
 	cloud.google.com/go v0.116.0 // indirect
@@ -150,7 +154,7 @@ require (
 	google.golang.org/api v0.211.0 // indirect
 	google.golang.org/genai v1.20.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
-	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

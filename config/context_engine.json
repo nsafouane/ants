@@ -5,7 +5,92 @@
   "prewarm_top_n": 10,
   "vector_db": {
     "type": "qdrant",
-    "url": "http://localhost:6333",
-    "collection": "ants_code_nodes"
+    "url": "http://localhost",
+    "port": 6334,
+    "collection": "ants_code_nodes",
+    "use_tls": false,
+    "connection_timeout_ms": 5000,
+    "request_timeout_ms": 30000,
+    "batch_size": 100,
+    "vector_size": 1536,
+    "distance_metric": "Cosine",
+    "recreate_collection": false
+  },
+  "embedding": {
+    "provider": "ollama",
+    "model": "codellama:latest",
+    "base_url": "http://localhost:11434",
+    "timeout_seconds": 60,
+    "max_retries": 3,
+    "enable_metadata_context": true
+  },
+  "fts5": {
+    "enabled": true,
+    "rebuild_on_startup": false,
+    "auto_optimize": true,
+    "optimization_interval_hours": 1,
+    "index_options": {
+      "extract_comments": true,
+      "extract_identifiers": true,
+      "process_docstrings": true,
+      "batch_size": 100,
+      "update_existing": true
+    }
+  },
+  "telemetry": {
+    "enabled": true,
+    "collection_interval_seconds": 30,
+    "retention_period_hours": 24,
+    "batch_size": 100,
+    "enable_database_storage": true,
+    "enable_performance_alerts": true,
+    "enable_events": true,
+    "components": {
+      "system_metrics": true,
+      "analysis_metrics": true,
+      "vector_metrics": true,
+      "search_metrics": true,
+      "cache_metrics": true
+    },
+    "performance_targets": {
+      "tier_1_analysis_time_seconds": 5.0,
+      "ai_worker_query_latency_ms": 2000.0,
+      "search_latency_ms": 200.0,
+      "vector_db_query_latency_ms": 100.0,
+      "cache_hit_rate_percent": 80.0,
+      "memory_usage_mb": 512.0,
+      "indexing_throughput_docs_per_sec": 25.0
+    },
+    "alert_thresholds": {
+      "warning_multiplier": 1.5,
+      "critical_multiplier": 3.0
+    }
+  },
+  "operational_modes": {
+    "eco": {
+      "memory_budget_mb": 256,
+      "max_goroutines": 4,
+      "telemetry": {
+        "collection_interval_seconds": 60,
+        "components": {
+          "vector_metrics": false,
+          "cache_metrics": false
+        }
+      }
+    },
+    "performance": {
+      "memory_budget_mb": 512,
+      "max_goroutines": 8,
+      "telemetry": {
+        "collection_interval_seconds": 10,
+        "components": {
+          "system_metrics": true,
+          "analysis_metrics": true,
+          "vector_metrics": true,
+          "search_metrics": true,
+          "cache_metrics": true
+        }
+      }
+    }
   }
 }

@@ -1,0 +1,72 @@
+-- FTS5 Search Queries
+-- Note: These are basic queries compatible with SQLC
+-- Full FTS5 functionality is implemented in the FTS service using raw SQL
+
+-- name: InsertCodeContentFTS :exec
+-- Insert or update code content in FTS5 index
+INSERT INTO code_content_fts(
+    content, symbol, comments, identifiers,
+    node_id, session_id, path, language, kind
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+);
+
+-- name: InsertFileContentFTS :exec
+-- Insert or update file content in FTS5 index
+INSERT INTO file_content_fts(
+    content, filename, session_id, path, language, file_size
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+);
+
+-- name: InsertDocumentationFTS :exec
+-- Insert or update documentation in FTS5 index
+INSERT INTO documentation_fts(
+    title, content, tags, node_id, session_id, doc_type, language
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7
+);
+
+-- name: DeleteCodeContentFTS :exec
+-- Remove code content from FTS5 index
+DELETE FROM code_content_fts WHERE node_id = $1;
+
+-- name: DeleteFileContentFTS :exec
+-- Remove file content from FTS5 index
+DELETE FROM file_content_fts WHERE path = $1 AND session_id = $2;
+
+-- name: DeleteDocumentationFTS :exec
+-- Remove documentation from FTS5 index
+DELETE FROM documentation_fts WHERE node_id = $1;
+
+-- name: GetFTSConfig :one
+-- Get FTS5 configuration for a table
+SELECT id, table_name, enabled, last_rebuild, document_count, index_size_kb, created_at, updated_at 
+FROM fts_config WHERE table_name = $1;
+
+-- name: UpdateFTSConfig :exec
+-- Update FTS5 configuration
+UPDATE fts_config 
+SET 
+    enabled = $2,
+    last_rebuild = $3,
+    document_count = $4,
+    index_size_kb = $5,
+    updated_at = CURRENT_TIMESTAMP
+WHERE table_name = $1;
+
+-- name: GetFTSStats :many
+-- Get FTS5 statistics for all tables
+SELECT 
+    table_name,
+    enabled,
+    document_count,
+    index_size_kb,
+    last_rebuild,
+    updated_at
+FROM fts_config
+ORDER BY table_name;
+
+-- name: CountFTSDocuments :one
+-- Count documents in FTS5 table
+SELECT COUNT(*) as count FROM code_content_fts;

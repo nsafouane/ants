@@ -24,6 +24,15 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.acknowledgeAlertStmt, err = db.PrepareContext(ctx, acknowledgeAlert); err != nil {
+		return nil, fmt.Errorf("error preparing query AcknowledgeAlert: %w", err)
+	}
+	if q.cleanOldMetricsStmt, err = db.PrepareContext(ctx, cleanOldMetrics); err != nil {
+		return nil, fmt.Errorf("error preparing query CleanOldMetrics: %w", err)
+	}
+	if q.countActiveAlertsBySeverityStmt, err = db.PrepareContext(ctx, countActiveAlertsBySeverity); err != nil {
+		return nil, fmt.Errorf("error preparing query CountActiveAlertsBySeverity: %w", err)
+	}
 	if q.countAnalysisByStatusStmt, err = db.PrepareContext(ctx, countAnalysisByStatus); err != nil {
 		return nil, fmt.Errorf("error preparing query CountAnalysisByStatus: %w", err)
 	}
@@ -114,11 +123,38 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteSessionMessagesStmt, err = db.PrepareContext(ctx, deleteSessionMessages); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteSessionMessages: %w", err)
 	}
+	if q.getActiveAlertsStmt, err = db.PrepareContext(ctx, getActiveAlerts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetActiveAlerts: %w", err)
+	}
+	if q.getActiveAlertsByComponentStmt, err = db.PrepareContext(ctx, getActiveAlertsByComponent); err != nil {
+		return nil, fmt.Errorf("error preparing query GetActiveAlertsByComponent: %w", err)
+	}
+	if q.getAlertHistoryStmt, err = db.PrepareContext(ctx, getAlertHistory); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAlertHistory: %w", err)
+	}
+	if q.getAlertsFromViewStmt, err = db.PrepareContext(ctx, getAlertsFromView); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAlertsFromView: %w", err)
+	}
+	if q.getAllMetricMetadataStmt, err = db.PrepareContext(ctx, getAllMetricMetadata); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllMetricMetadata: %w", err)
+	}
+	if q.getAllPerformanceBenchmarksStmt, err = db.PrepareContext(ctx, getAllPerformanceBenchmarks); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllPerformanceBenchmarks: %w", err)
+	}
 	if q.getCodeNodeStmt, err = db.PrepareContext(ctx, getCodeNode); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCodeNode: %w", err)
 	}
 	if q.getCodeNodeByPathAndSymbolStmt, err = db.PrepareContext(ctx, getCodeNodeByPathAndSymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCodeNodeByPathAndSymbol: %w", err)
+	}
+	if q.getComponentHealthStmt, err = db.PrepareContext(ctx, getComponentHealth); err != nil {
+		return nil, fmt.Errorf("error preparing query GetComponentHealth: %w", err)
+	}
+	if q.getComponentMetricsSummaryStmt, err = db.PrepareContext(ctx, getComponentMetricsSummary); err != nil {
+		return nil, fmt.Errorf("error preparing query GetComponentMetricsSummary: %w", err)
+	}
+	if q.getDatabaseSizeStmt, err = db.PrepareContext(ctx, getDatabaseSize); err != nil {
+		return nil, fmt.Errorf("error preparing query GetDatabaseSize: %w", err)
 	}
 	if q.getDependencyStmt, err = db.PrepareContext(ctx, getDependency); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDependency: %w", err)
@@ -147,8 +183,50 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getMessageStmt, err = db.PrepareContext(ctx, getMessage); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMessage: %w", err)
 	}
+	if q.getMetricDataStmt, err = db.PrepareContext(ctx, getMetricData); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMetricData: %w", err)
+	}
+	if q.getMetricDataByComponentStmt, err = db.PrepareContext(ctx, getMetricDataByComponent); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMetricDataByComponent: %w", err)
+	}
+	if q.getMetricMetadataStmt, err = db.PrepareContext(ctx, getMetricMetadata); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMetricMetadata: %w", err)
+	}
+	if q.getMetricStatisticsStmt, err = db.PrepareContext(ctx, getMetricStatistics); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMetricStatistics: %w", err)
+	}
+	if q.getMetricsSummaryStmt, err = db.PrepareContext(ctx, getMetricsSummary); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMetricsSummary: %w", err)
+	}
+	if q.getPerformanceBenchmarkStmt, err = db.PrepareContext(ctx, getPerformanceBenchmark); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPerformanceBenchmark: %w", err)
+	}
+	if q.getRecentMetricsForSessionStmt, err = db.PrepareContext(ctx, getRecentMetricsForSession); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRecentMetricsForSession: %w", err)
+	}
 	if q.getSessionByIDStmt, err = db.PrepareContext(ctx, getSessionByID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSessionByID: %w", err)
+	}
+	if q.getSystemHealthStmt, err = db.PrepareContext(ctx, getSystemHealth); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSystemHealth: %w", err)
+	}
+	if q.getSystemHealthOverviewStmt, err = db.PrepareContext(ctx, getSystemHealthOverview); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSystemHealthOverview: %w", err)
+	}
+	if q.getTopMetricsByValueStmt, err = db.PrepareContext(ctx, getTopMetricsByValue); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTopMetricsByValue: %w", err)
+	}
+	if q.insertMetricDataStmt, err = db.PrepareContext(ctx, insertMetricData); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertMetricData: %w", err)
+	}
+	if q.insertMetricMetadataStmt, err = db.PrepareContext(ctx, insertMetricMetadata); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertMetricMetadata: %w", err)
+	}
+	if q.insertPerformanceAlertStmt, err = db.PrepareContext(ctx, insertPerformanceAlert); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertPerformanceAlert: %w", err)
+	}
+	if q.insertPerformanceBenchmarkStmt, err = db.PrepareContext(ctx, insertPerformanceBenchmark); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertPerformanceBenchmark: %w", err)
 	}
 	if q.listAllDependenciesStmt, err = db.PrepareContext(ctx, listAllDependencies); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAllDependencies: %w", err)
@@ -216,6 +294,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listSessionsStmt, err = db.PrepareContext(ctx, listSessions); err != nil {
 		return nil, fmt.Errorf("error preparing query ListSessions: %w", err)
 	}
+	if q.resolveAlertStmt, err = db.PrepareContext(ctx, resolveAlert); err != nil {
+		return nil, fmt.Errorf("error preparing query ResolveAlert: %w", err)
+	}
 	if q.searchCodeNodesBySymbolStmt, err = db.PrepareContext(ctx, searchCodeNodesBySymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query SearchCodeNodesBySymbol: %w", err)
 	}
@@ -231,14 +312,35 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updateMessageStmt, err = db.PrepareContext(ctx, updateMessage); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateMessage: %w", err)
 	}
+	if q.updateMetricEnabledStmt, err = db.PrepareContext(ctx, updateMetricEnabled); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateMetricEnabled: %w", err)
+	}
 	if q.updateSessionStmt, err = db.PrepareContext(ctx, updateSession); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateSession: %w", err)
+	}
+	if q.updateSystemHealthStatusStmt, err = db.PrepareContext(ctx, updateSystemHealthStatus); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateSystemHealthStatus: %w", err)
 	}
 	return &q, nil
 }
 
 func (q *Queries) Close() error {
 	var err error
+	if q.acknowledgeAlertStmt != nil {
+		if cerr := q.acknowledgeAlertStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing acknowledgeAlertStmt: %w", cerr)
+		}
+	}
+	if q.cleanOldMetricsStmt != nil {
+		if cerr := q.cleanOldMetricsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing cleanOldMetricsStmt: %w", cerr)
+		}
+	}
+	if q.countActiveAlertsBySeverityStmt != nil {
+		if cerr := q.countActiveAlertsBySeverityStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countActiveAlertsBySeverityStmt: %w", cerr)
+		}
+	}
 	if q.countAnalysisByStatusStmt != nil {
 		if cerr := q.countAnalysisByStatusStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countAnalysisByStatusStmt: %w", cerr)
@@ -389,6 +491,36 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteSessionMessagesStmt: %w", cerr)
 		}
 	}
+	if q.getActiveAlertsStmt != nil {
+		if cerr := q.getActiveAlertsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getActiveAlertsStmt: %w", cerr)
+		}
+	}
+	if q.getActiveAlertsByComponentStmt != nil {
+		if cerr := q.getActiveAlertsByComponentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getActiveAlertsByComponentStmt: %w", cerr)
+		}
+	}
+	if q.getAlertHistoryStmt != nil {
+		if cerr := q.getAlertHistoryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAlertHistoryStmt: %w", cerr)
+		}
+	}
+	if q.getAlertsFromViewStmt != nil {
+		if cerr := q.getAlertsFromViewStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAlertsFromViewStmt: %w", cerr)
+		}
+	}
+	if q.getAllMetricMetadataStmt != nil {
+		if cerr := q.getAllMetricMetadataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllMetricMetadataStmt: %w", cerr)
+		}
+	}
+	if q.getAllPerformanceBenchmarksStmt != nil {
+		if cerr := q.getAllPerformanceBenchmarksStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllPerformanceBenchmarksStmt: %w", cerr)
+		}
+	}
 	if q.getCodeNodeStmt != nil {
 		if cerr := q.getCodeNodeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCodeNodeStmt: %w", cerr)
@@ -397,6 +529,21 @@ func (q *Queries) Close() error {
 	if q.getCodeNodeByPathAndSymbolStmt != nil {
 		if cerr := q.getCodeNodeByPathAndSymbolStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCodeNodeByPathAndSymbolStmt: %w", cerr)
+		}
+	}
+	if q.getComponentHealthStmt != nil {
+		if cerr := q.getComponentHealthStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getComponentHealthStmt: %w", cerr)
+		}
+	}
+	if q.getComponentMetricsSummaryStmt != nil {
+		if cerr := q.getComponentMetricsSummaryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getComponentMetricsSummaryStmt: %w", cerr)
+		}
+	}
+	if q.getDatabaseSizeStmt != nil {
+		if cerr := q.getDatabaseSizeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getDatabaseSizeStmt: %w", cerr)
 		}
 	}
 	if q.getDependencyStmt != nil {
@@ -444,9 +591,79 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getMessageStmt: %w", cerr)
 		}
 	}
+	if q.getMetricDataStmt != nil {
+		if cerr := q.getMetricDataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMetricDataStmt: %w", cerr)
+		}
+	}
+	if q.getMetricDataByComponentStmt != nil {
+		if cerr := q.getMetricDataByComponentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMetricDataByComponentStmt: %w", cerr)
+		}
+	}
+	if q.getMetricMetadataStmt != nil {
+		if cerr := q.getMetricMetadataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMetricMetadataStmt: %w", cerr)
+		}
+	}
+	if q.getMetricStatisticsStmt != nil {
+		if cerr := q.getMetricStatisticsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMetricStatisticsStmt: %w", cerr)
+		}
+	}
+	if q.getMetricsSummaryStmt != nil {
+		if cerr := q.getMetricsSummaryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMetricsSummaryStmt: %w", cerr)
+		}
+	}
+	if q.getPerformanceBenchmarkStmt != nil {
+		if cerr := q.getPerformanceBenchmarkStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPerformanceBenchmarkStmt: %w", cerr)
+		}
+	}
+	if q.getRecentMetricsForSessionStmt != nil {
+		if cerr := q.getRecentMetricsForSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getRecentMetricsForSessionStmt: %w", cerr)
+		}
+	}
 	if q.getSessionByIDStmt != nil {
 		if cerr := q.getSessionByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSessionByIDStmt: %w", cerr)
+		}
+	}
+	if q.getSystemHealthStmt != nil {
+		if cerr := q.getSystemHealthStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSystemHealthStmt: %w", cerr)
+		}
+	}
+	if q.getSystemHealthOverviewStmt != nil {
+		if cerr := q.getSystemHealthOverviewStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSystemHealthOverviewStmt: %w", cerr)
+		}
+	}
+	if q.getTopMetricsByValueStmt != nil {
+		if cerr := q.getTopMetricsByValueStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTopMetricsByValueStmt: %w", cerr)
+		}
+	}
+	if q.insertMetricDataStmt != nil {
+		if cerr := q.insertMetricDataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertMetricDataStmt: %w", cerr)
+		}
+	}
+	if q.insertMetricMetadataStmt != nil {
+		if cerr := q.insertMetricMetadataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertMetricMetadataStmt: %w", cerr)
+		}
+	}
+	if q.insertPerformanceAlertStmt != nil {
+		if cerr := q.insertPerformanceAlertStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertPerformanceAlertStmt: %w", cerr)
+		}
+	}
+	if q.insertPerformanceBenchmarkStmt != nil {
+		if cerr := q.insertPerformanceBenchmarkStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertPerformanceBenchmarkStmt: %w", cerr)
 		}
 	}
 	if q.listAllDependenciesStmt != nil {
@@ -559,6 +776,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listSessionsStmt: %w", cerr)
 		}
 	}
+	if q.resolveAlertStmt != nil {
+		if cerr := q.resolveAlertStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing resolveAlertStmt: %w", cerr)
+		}
+	}
 	if q.searchCodeNodesBySymbolStmt != nil {
 		if cerr := q.searchCodeNodesBySymbolStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing searchCodeNodesBySymbolStmt: %w", cerr)
@@ -584,9 +806,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateMessageStmt: %w", cerr)
 		}
 	}
+	if q.updateMetricEnabledStmt != nil {
+		if cerr := q.updateMetricEnabledStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateMetricEnabledStmt: %w", cerr)
+		}
+	}
 	if q.updateSessionStmt != nil {
 		if cerr := q.updateSessionStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateSessionStmt: %w", cerr)
+		}
+	}
+	if q.updateSystemHealthStatusStmt != nil {
+		if cerr := q.updateSystemHealthStatusStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateSystemHealthStatusStmt: %w", cerr)
 		}
 	}
 	return err
@@ -626,153 +858,211 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                             DBTX
-	tx                             *sql.Tx
-	countAnalysisByStatusStmt      *sql.Stmt
-	countAnalysisByTierStmt        *sql.Stmt
-	countCodeNodesByKindStmt       *sql.Stmt
-	countCodeNodesBySessionStmt    *sql.Stmt
-	countDependenciesFromStmt      *sql.Stmt
-	countDependenciesToStmt        *sql.Stmt
-	countEmbeddingsBySessionStmt   *sql.Stmt
-	createAnalysisMetadataStmt     *sql.Stmt
-	createCodeNodeStmt             *sql.Stmt
-	createDependencyStmt           *sql.Stmt
-	createEmbeddingStmt            *sql.Stmt
-	createFileStmt                 *sql.Stmt
-	createMessageStmt              *sql.Stmt
-	createSessionStmt              *sql.Stmt
-	deleteAnalysisByNodeStmt       *sql.Stmt
-	deleteAnalysisBySessionStmt    *sql.Stmt
-	deleteAnalysisMetadataStmt     *sql.Stmt
-	deleteCodeNodeStmt             *sql.Stmt
-	deleteCodeNodesByPathStmt      *sql.Stmt
-	deleteCodeNodesBySessionStmt   *sql.Stmt
-	deleteDependenciesByNodeStmt   *sql.Stmt
-	deleteDependencyStmt           *sql.Stmt
-	deleteEmbeddingStmt            *sql.Stmt
-	deleteEmbeddingByNodeStmt      *sql.Stmt
-	deleteEmbeddingsBySessionStmt  *sql.Stmt
-	deleteFileStmt                 *sql.Stmt
-	deleteMessageStmt              *sql.Stmt
-	deleteSessionStmt              *sql.Stmt
-	deleteSessionFilesStmt         *sql.Stmt
-	deleteSessionMessagesStmt      *sql.Stmt
-	getCodeNodeStmt                *sql.Stmt
-	getCodeNodeByPathAndSymbolStmt *sql.Stmt
-	getDependencyStmt              *sql.Stmt
-	getEmbeddingStmt               *sql.Stmt
-	getEmbeddingByNodeStmt         *sql.Stmt
-	getEmbeddingByVectorIDStmt     *sql.Stmt
-	getEmbeddingsByNodeStmt        *sql.Stmt
-	getFileStmt                    *sql.Stmt
-	getFileByPathAndSessionStmt    *sql.Stmt
-	getLatestAnalysisByNodeStmt    *sql.Stmt
-	getMessageStmt                 *sql.Stmt
-	getSessionByIDStmt             *sql.Stmt
-	listAllDependenciesStmt        *sql.Stmt
-	listAnalysisByNodeStmt         *sql.Stmt
-	listAnalysisBySessionStmt      *sql.Stmt
-	listAnalysisByStatusStmt       *sql.Stmt
-	listAnalysisByTierStmt         *sql.Stmt
-	listCodeNodesByKindStmt        *sql.Stmt
-	listCodeNodesByLanguageStmt    *sql.Stmt
-	listCodeNodesByPathStmt        *sql.Stmt
-	listCodeNodesBySessionStmt     *sql.Stmt
-	listCodeNodesInRangeStmt       *sql.Stmt
-	listDependenciesByRelationStmt *sql.Stmt
-	listDependenciesFromStmt       *sql.Stmt
-	listDependenciesToStmt         *sql.Stmt
-	listEmbeddingsByDimsStmt       *sql.Stmt
-	listEmbeddingsBySessionStmt    *sql.Stmt
-	listFilesByPathStmt            *sql.Stmt
-	listFilesBySessionStmt         *sql.Stmt
-	listLatestSessionFilesStmt     *sql.Stmt
-	listMessagesBySessionStmt      *sql.Stmt
-	listNewFilesStmt               *sql.Stmt
-	listPendingAnalysisStmt        *sql.Stmt
-	listSessionsStmt               *sql.Stmt
-	searchCodeNodesBySymbolStmt    *sql.Stmt
-	updateAnalysisStatusStmt       *sql.Stmt
-	updateCodeNodeStmt             *sql.Stmt
-	updateEmbeddingStmt            *sql.Stmt
-	updateMessageStmt              *sql.Stmt
-	updateSessionStmt              *sql.Stmt
+	db                              DBTX
+	tx                              *sql.Tx
+	acknowledgeAlertStmt            *sql.Stmt
+	cleanOldMetricsStmt             *sql.Stmt
+	countActiveAlertsBySeverityStmt *sql.Stmt
+	countAnalysisByStatusStmt       *sql.Stmt
+	countAnalysisByTierStmt         *sql.Stmt
+	countCodeNodesByKindStmt        *sql.Stmt
+	countCodeNodesBySessionStmt     *sql.Stmt
+	countDependenciesFromStmt       *sql.Stmt
+	countDependenciesToStmt         *sql.Stmt
+	countEmbeddingsBySessionStmt    *sql.Stmt
+	createAnalysisMetadataStmt      *sql.Stmt
+	createCodeNodeStmt              *sql.Stmt
+	createDependencyStmt            *sql.Stmt
+	createEmbeddingStmt             *sql.Stmt
+	createFileStmt                  *sql.Stmt
+	createMessageStmt               *sql.Stmt
+	createSessionStmt               *sql.Stmt
+	deleteAnalysisByNodeStmt        *sql.Stmt
+	deleteAnalysisBySessionStmt     *sql.Stmt
+	deleteAnalysisMetadataStmt      *sql.Stmt
+	deleteCodeNodeStmt              *sql.Stmt
+	deleteCodeNodesByPathStmt       *sql.Stmt
+	deleteCodeNodesBySessionStmt    *sql.Stmt
+	deleteDependenciesByNodeStmt    *sql.Stmt
+	deleteDependencyStmt            *sql.Stmt
+	deleteEmbeddingStmt             *sql.Stmt
+	deleteEmbeddingByNodeStmt       *sql.Stmt
+	deleteEmbeddingsBySessionStmt   *sql.Stmt
+	deleteFileStmt                  *sql.Stmt
+	deleteMessageStmt               *sql.Stmt
+	deleteSessionStmt               *sql.Stmt
+	deleteSessionFilesStmt          *sql.Stmt
+	deleteSessionMessagesStmt       *sql.Stmt
+	getActiveAlertsStmt             *sql.Stmt
+	getActiveAlertsByComponentStmt  *sql.Stmt
+	getAlertHistoryStmt             *sql.Stmt
+	getAlertsFromViewStmt           *sql.Stmt
+	getAllMetricMetadataStmt        *sql.Stmt
+	getAllPerformanceBenchmarksStmt *sql.Stmt
+	getCodeNodeStmt                 *sql.Stmt
+	getCodeNodeByPathAndSymbolStmt  *sql.Stmt
+	getComponentHealthStmt          *sql.Stmt
+	getComponentMetricsSummaryStmt  *sql.Stmt
+	getDatabaseSizeStmt             *sql.Stmt
+	getDependencyStmt               *sql.Stmt
+	getEmbeddingStmt                *sql.Stmt
+	getEmbeddingByNodeStmt          *sql.Stmt
+	getEmbeddingByVectorIDStmt      *sql.Stmt
+	getEmbeddingsByNodeStmt         *sql.Stmt
+	getFileStmt                     *sql.Stmt
+	getFileByPathAndSessionStmt     *sql.Stmt
+	getLatestAnalysisByNodeStmt     *sql.Stmt
+	getMessageStmt                  *sql.Stmt
+	getMetricDataStmt               *sql.Stmt
+	getMetricDataByComponentStmt    *sql.Stmt
+	getMetricMetadataStmt           *sql.Stmt
+	getMetricStatisticsStmt         *sql.Stmt
+	getMetricsSummaryStmt           *sql.Stmt
+	getPerformanceBenchmarkStmt     *sql.Stmt
+	getRecentMetricsForSessionStmt  *sql.Stmt
+	getSessionByIDStmt              *sql.Stmt
+	getSystemHealthStmt             *sql.Stmt
+	getSystemHealthOverviewStmt     *sql.Stmt
+	getTopMetricsByValueStmt        *sql.Stmt
+	insertMetricDataStmt            *sql.Stmt
+	insertMetricMetadataStmt        *sql.Stmt
+	insertPerformanceAlertStmt      *sql.Stmt
+	insertPerformanceBenchmarkStmt  *sql.Stmt
+	listAllDependenciesStmt         *sql.Stmt
+	listAnalysisByNodeStmt          *sql.Stmt
+	listAnalysisBySessionStmt       *sql.Stmt
+	listAnalysisByStatusStmt        *sql.Stmt
+	listAnalysisByTierStmt          *sql.Stmt
+	listCodeNodesByKindStmt         *sql.Stmt
+	listCodeNodesByLanguageStmt     *sql.Stmt
+	listCodeNodesByPathStmt         *sql.Stmt
+	listCodeNodesBySessionStmt      *sql.Stmt
+	listCodeNodesInRangeStmt        *sql.Stmt
+	listDependenciesByRelationStmt  *sql.Stmt
+	listDependenciesFromStmt        *sql.Stmt
+	listDependenciesToStmt          *sql.Stmt
+	listEmbeddingsByDimsStmt        *sql.Stmt
+	listEmbeddingsBySessionStmt     *sql.Stmt
+	listFilesByPathStmt             *sql.Stmt
+	listFilesBySessionStmt          *sql.Stmt
+	listLatestSessionFilesStmt      *sql.Stmt
+	listMessagesBySessionStmt       *sql.Stmt
+	listNewFilesStmt                *sql.Stmt
+	listPendingAnalysisStmt         *sql.Stmt
+	listSessionsStmt                *sql.Stmt
+	resolveAlertStmt                *sql.Stmt
+	searchCodeNodesBySymbolStmt     *sql.Stmt
+	updateAnalysisStatusStmt        *sql.Stmt
+	updateCodeNodeStmt              *sql.Stmt
+	updateEmbeddingStmt             *sql.Stmt
+	updateMessageStmt               *sql.Stmt
+	updateMetricEnabledStmt         *sql.Stmt
+	updateSessionStmt               *sql.Stmt
+	updateSystemHealthStatusStmt    *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                             tx,
-		tx:                             tx,
-		countAnalysisByStatusStmt:      q.countAnalysisByStatusStmt,
-		countAnalysisByTierStmt:        q.countAnalysisByTierStmt,
-		countCodeNodesByKindStmt:       q.countCodeNodesByKindStmt,
-		countCodeNodesBySessionStmt:    q.countCodeNodesBySessionStmt,
-		countDependenciesFromStmt:      q.countDependenciesFromStmt,
-		countDependenciesToStmt:        q.countDependenciesToStmt,
-		countEmbeddingsBySessionStmt:   q.countEmbeddingsBySessionStmt,
-		createAnalysisMetadataStmt:     q.createAnalysisMetadataStmt,
-		createCodeNodeStmt:             q.createCodeNodeStmt,
-		createDependencyStmt:           q.createDependencyStmt,
-		createEmbeddingStmt:            q.createEmbeddingStmt,
-		createFileStmt:                 q.createFileStmt,
-		createMessageStmt:              q.createMessageStmt,
-		createSessionStmt:              q.createSessionStmt,
-		deleteAnalysisByNodeStmt:       q.deleteAnalysisByNodeStmt,
-		deleteAnalysisBySessionStmt:    q.deleteAnalysisBySessionStmt,
-		deleteAnalysisMetadataStmt:     q.deleteAnalysisMetadataStmt,
-		deleteCodeNodeStmt:             q.deleteCodeNodeStmt,
-		deleteCodeNodesByPathStmt:      q.deleteCodeNodesByPathStmt,
-		deleteCodeNodesBySessionStmt:   q.deleteCodeNodesBySessionStmt,
-		deleteDependenciesByNodeStmt:   q.deleteDependenciesByNodeStmt,
-		deleteDependencyStmt:           q.deleteDependencyStmt,
-		deleteEmbeddingStmt:            q.deleteEmbeddingStmt,
-		deleteEmbeddingByNodeStmt:      q.deleteEmbeddingByNodeStmt,
-		deleteEmbeddingsBySessionStmt:  q.deleteEmbeddingsBySessionStmt,
-		deleteFileStmt:                 q.deleteFileStmt,
-		deleteMessageStmt:              q.deleteMessageStmt,
-		deleteSessionStmt:              q.deleteSessionStmt,
-		deleteSessionFilesStmt:         q.deleteSessionFilesStmt,
-		deleteSessionMessagesStmt:      q.deleteSessionMessagesStmt,
-		getCodeNodeStmt:                q.getCodeNodeStmt,
-		getCodeNodeByPathAndSymbolStmt: q.getCodeNodeByPathAndSymbolStmt,
-		getDependencyStmt:              q.getDependencyStmt,
-		getEmbeddingStmt:               q.getEmbeddingStmt,
-		getEmbeddingByNodeStmt:         q.getEmbeddingByNodeStmt,
-		getEmbeddingByVectorIDStmt:     q.getEmbeddingByVectorIDStmt,
-		getEmbeddingsByNodeStmt:        q.getEmbeddingsByNodeStmt,
-		getFileStmt:                    q.getFileStmt,
-		getFileByPathAndSessionStmt:    q.getFileByPathAndSessionStmt,
-		getLatestAnalysisByNodeStmt:    q.getLatestAnalysisByNodeStmt,
-		getMessageStmt:                 q.getMessageStmt,
-		getSessionByIDStmt:             q.getSessionByIDStmt,
-		listAllDependenciesStmt:        q.listAllDependenciesStmt,
-		listAnalysisByNodeStmt:         q.listAnalysisByNodeStmt,
-		listAnalysisBySessionStmt:      q.listAnalysisBySessionStmt,
-		listAnalysisByStatusStmt:       q.listAnalysisByStatusStmt,
-		listAnalysisByTierStmt:         q.listAnalysisByTierStmt,
-		listCodeNodesByKindStmt:        q.listCodeNodesByKindStmt,
-		listCodeNodesByLanguageStmt:    q.listCodeNodesByLanguageStmt,
-		listCodeNodesByPathStmt:        q.listCodeNodesByPathStmt,
-		listCodeNodesBySessionStmt:     q.listCodeNodesBySessionStmt,
-		listCodeNodesInRangeStmt:       q.listCodeNodesInRangeStmt,
-		listDependenciesByRelationStmt: q.listDependenciesByRelationStmt,
-		listDependenciesFromStmt:       q.listDependenciesFromStmt,
-		listDependenciesToStmt:         q.listDependenciesToStmt,
-		listEmbeddingsByDimsStmt:       q.listEmbeddingsByDimsStmt,
-		listEmbeddingsBySessionStmt:    q.listEmbeddingsBySessionStmt,
-		listFilesByPathStmt:            q.listFilesByPathStmt,
-		listFilesBySessionStmt:         q.listFilesBySessionStmt,
-		listLatestSessionFilesStmt:     q.listLatestSessionFilesStmt,
-		listMessagesBySessionStmt:      q.listMessagesBySessionStmt,
-		listNewFilesStmt:               q.listNewFilesStmt,
-		listPendingAnalysisStmt:        q.listPendingAnalysisStmt,
-		listSessionsStmt:               q.listSessionsStmt,
-		searchCodeNodesBySymbolStmt:    q.searchCodeNodesBySymbolStmt,
-		updateAnalysisStatusStmt:       q.updateAnalysisStatusStmt,
-		updateCodeNodeStmt:             q.updateCodeNodeStmt,
-		updateEmbeddingStmt:            q.updateEmbeddingStmt,
-		updateMessageStmt:              q.updateMessageStmt,
-		updateSessionStmt:              q.updateSessionStmt,
+		db:                              tx,
+		tx:                              tx,
+		acknowledgeAlertStmt:            q.acknowledgeAlertStmt,
+		cleanOldMetricsStmt:             q.cleanOldMetricsStmt,
+		countActiveAlertsBySeverityStmt: q.countActiveAlertsBySeverityStmt,
+		countAnalysisByStatusStmt:       q.countAnalysisByStatusStmt,
+		countAnalysisByTierStmt:         q.countAnalysisByTierStmt,
+		countCodeNodesByKindStmt:        q.countCodeNodesByKindStmt,
+		countCodeNodesBySessionStmt:     q.countCodeNodesBySessionStmt,
+		countDependenciesFromStmt:       q.countDependenciesFromStmt,
+		countDependenciesToStmt:         q.countDependenciesToStmt,
+		countEmbeddingsBySessionStmt:    q.countEmbeddingsBySessionStmt,
+		createAnalysisMetadataStmt:      q.createAnalysisMetadataStmt,
+		createCodeNodeStmt:              q.createCodeNodeStmt,
+		createDependencyStmt:            q.createDependencyStmt,
+		createEmbeddingStmt:             q.createEmbeddingStmt,
+		createFileStmt:                  q.createFileStmt,
+		createMessageStmt:               q.createMessageStmt,
+		createSessionStmt:               q.createSessionStmt,
+		deleteAnalysisByNodeStmt:        q.deleteAnalysisByNodeStmt,
+		deleteAnalysisBySessionStmt:     q.deleteAnalysisBySessionStmt,
+		deleteAnalysisMetadataStmt:      q.deleteAnalysisMetadataStmt,
+		deleteCodeNodeStmt:              q.deleteCodeNodeStmt,
+		deleteCodeNodesByPathStmt:       q.deleteCodeNodesByPathStmt,
+		deleteCodeNodesBySessionStmt:    q.deleteCodeNodesBySessionStmt,
+		deleteDependenciesByNodeStmt:    q.deleteDependenciesByNodeStmt,
+		deleteDependencyStmt:            q.deleteDependencyStmt,
+		deleteEmbeddingStmt:             q.deleteEmbeddingStmt,
+		deleteEmbeddingByNodeStmt:       q.deleteEmbeddingByNodeStmt,
+		deleteEmbeddingsBySessionStmt:   q.deleteEmbeddingsBySessionStmt,
+		deleteFileStmt:                  q.deleteFileStmt,
+		deleteMessageStmt:               q.deleteMessageStmt,
+		deleteSessionStmt:               q.deleteSessionStmt,
+		deleteSessionFilesStmt:          q.deleteSessionFilesStmt,
+		deleteSessionMessagesStmt:       q.deleteSessionMessagesStmt,
+		getActiveAlertsStmt:             q.getActiveAlertsStmt,
+		getActiveAlertsByComponentStmt:  q.getActiveAlertsByComponentStmt,
+		getAlertHistoryStmt:             q.getAlertHistoryStmt,
+		getAlertsFromViewStmt:           q.getAlertsFromViewStmt,
+		getAllMetricMetadataStmt:        q.getAllMetricMetadataStmt,
+		getAllPerformanceBenchmarksStmt: q.getAllPerformanceBenchmarksStmt,
+		getCodeNodeStmt:                 q.getCodeNodeStmt,
+		getCodeNodeByPathAndSymbolStmt:  q.getCodeNodeByPathAndSymbolStmt,
+		getComponentHealthStmt:          q.getComponentHealthStmt,
+		getComponentMetricsSummaryStmt:  q.getComponentMetricsSummaryStmt,
+		getDatabaseSizeStmt:             q.getDatabaseSizeStmt,
+		getDependencyStmt:               q.getDependencyStmt,
+		getEmbeddingStmt:                q.getEmbeddingStmt,
+		getEmbeddingByNodeStmt:          q.getEmbeddingByNodeStmt,
+		getEmbeddingByVectorIDStmt:      q.getEmbeddingByVectorIDStmt,
+		getEmbeddingsByNodeStmt:         q.getEmbeddingsByNodeStmt,
+		getFileStmt:                     q.getFileStmt,
+		getFileByPathAndSessionStmt:     q.getFileByPathAndSessionStmt,
+		getLatestAnalysisByNodeStmt:     q.getLatestAnalysisByNodeStmt,
+		getMessageStmt:                  q.getMessageStmt,
+		getMetricDataStmt:               q.getMetricDataStmt,
+		getMetricDataByComponentStmt:    q.getMetricDataByComponentStmt,
+		getMetricMetadataStmt:           q.getMetricMetadataStmt,
+		getMetricStatisticsStmt:         q.getMetricStatisticsStmt,
+		getMetricsSummaryStmt:           q.getMetricsSummaryStmt,
+		getPerformanceBenchmarkStmt:     q.getPerformanceBenchmarkStmt,
+		getRecentMetricsForSessionStmt:  q.getRecentMetricsForSessionStmt,
+		getSessionByIDStmt:              q.getSessionByIDStmt,
+		getSystemHealthStmt:             q.getSystemHealthStmt,
+		getSystemHealthOverviewStmt:     q.getSystemHealthOverviewStmt,
+		getTopMetricsByValueStmt:        q.getTopMetricsByValueStmt,
+		insertMetricDataStmt:            q.insertMetricDataStmt,
+		insertMetricMetadataStmt:        q.insertMetricMetadataStmt,
+		insertPerformanceAlertStmt:      q.insertPerformanceAlertStmt,
+		insertPerformanceBenchmarkStmt:  q.insertPerformanceBenchmarkStmt,
+		listAllDependenciesStmt:         q.listAllDependenciesStmt,
+		listAnalysisByNodeStmt:          q.listAnalysisByNodeStmt,
+		listAnalysisBySessionStmt:       q.listAnalysisBySessionStmt,
+		listAnalysisByStatusStmt:        q.listAnalysisByStatusStmt,
+		listAnalysisByTierStmt:          q.listAnalysisByTierStmt,
+		listCodeNodesByKindStmt:         q.listCodeNodesByKindStmt,
+		listCodeNodesByLanguageStmt:     q.listCodeNodesByLanguageStmt,
+		listCodeNodesByPathStmt:         q.listCodeNodesByPathStmt,
+		listCodeNodesBySessionStmt:      q.listCodeNodesBySessionStmt,
+		listCodeNodesInRangeStmt:        q.listCodeNodesInRangeStmt,
+		listDependenciesByRelationStmt:  q.listDependenciesByRelationStmt,
+		listDependenciesFromStmt:        q.listDependenciesFromStmt,
+		listDependenciesToStmt:          q.listDependenciesToStmt,
+		listEmbeddingsByDimsStmt:        q.listEmbeddingsByDimsStmt,
+		listEmbeddingsBySessionStmt:     q.listEmbeddingsBySessionStmt,
+		listFilesByPathStmt:             q.listFilesByPathStmt,
+		listFilesBySessionStmt:          q.listFilesBySessionStmt,
+		listLatestSessionFilesStmt:      q.listLatestSessionFilesStmt,
+		listMessagesBySessionStmt:       q.listMessagesBySessionStmt,
+		listNewFilesStmt:                q.listNewFilesStmt,
+		listPendingAnalysisStmt:         q.listPendingAnalysisStmt,
+		listSessionsStmt:                q.listSessionsStmt,
+		resolveAlertStmt:                q.resolveAlertStmt,
+		searchCodeNodesBySymbolStmt:     q.searchCodeNodesBySymbolStmt,
+		updateAnalysisStatusStmt:        q.updateAnalysisStatusStmt,
+		updateCodeNodeStmt:              q.updateCodeNodeStmt,
+		updateEmbeddingStmt:             q.updateEmbeddingStmt,
+		updateMessageStmt:               q.updateMessageStmt,
+		updateMetricEnabledStmt:         q.updateMetricEnabledStmt,
+		updateSessionStmt:               q.updateSessionStmt,
+		updateSystemHealthStatusStmt:    q.updateSystemHealthStatusStmt,
 	}
 }

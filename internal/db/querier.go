@@ -7,9 +7,16 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 type Querier interface {
+	// Acknowledge an alert
+	AcknowledgeAlert(ctx context.Context, arg AcknowledgeAlertParams) error
+	// Delete old metric data points based on retention period
+	CleanOldMetrics(ctx context.Context, timestamp time.Time) error
+	// Count active alerts by severity level
+	CountActiveAlertsBySeverity(ctx context.Context) ([]CountActiveAlertsBySeverityRow, error)
 	CountAnalysisByStatus(ctx context.Context, arg CountAnalysisByStatusParams) (int64, error)
 	CountAnalysisByTier(ctx context.Context, arg CountAnalysisByTierParams) (int64, error)
 	CountCodeNodesByKind(ctx context.Context, arg CountCodeNodesByKindParams) (int64, error)
@@ -40,8 +47,26 @@ type Querier interface {
 	DeleteSession(ctx context.Context, id string) error
 	DeleteSessionFiles(ctx context.Context, sessionID string) error
 	DeleteSessionMessages(ctx context.Context, sessionID string) error
+	// Get all active (unresolved) alerts
+	GetActiveAlerts(ctx context.Context) ([]PerformanceAlert, error)
+	// Get active alerts for a specific component
+	GetActiveAlertsByComponent(ctx context.Context, component sql.NullString) ([]PerformanceAlert, error)
+	// Get alert history for a metric
+	GetAlertHistory(ctx context.Context, arg GetAlertHistoryParams) ([]PerformanceAlert, error)
+	// Get active alerts using the view
+	GetAlertsFromView(ctx context.Context) ([]ActiveAlert, error)
+	// Get all metric metadata
+	GetAllMetricMetadata(ctx context.Context) ([]MetricsMetadatum, error)
+	// Get all active performance benchmarks
+	GetAllPerformanceBenchmarks(ctx context.Context) ([]PerformanceBenchmark, error)
 	GetCodeNode(ctx context.Context, id int64) (CodeNode, error)
 	GetCodeNodeByPathAndSymbol(ctx context.Context, arg GetCodeNodeByPathAndSymbolParams) (CodeNode, error)
+	// Get health status for a specific component
+	GetComponentHealth(ctx context.Context, component string) (SystemHealth, error)
+	// Get metrics summary for a specific component
+	GetComponentMetricsSummary(ctx context.Context, arg GetComponentMetricsSummaryParams) ([]GetComponentMetricsSummaryRow, error)
+	// Get current database size statistics
+	GetDatabaseSize(ctx context.Context) (GetDatabaseSizeRow, error)
 	GetDependency(ctx context.Context, arg GetDependencyParams) (Dependency, error)
 	GetEmbedding(ctx context.Context, id int64) (Embedding, error)
 	GetEmbeddingByNode(ctx context.Context, nodeID int64) (Embedding, error)
@@ -51,7 +76,36 @@ type Querier interface {
 	GetFileByPathAndSession(ctx context.Context, arg GetFileByPathAndSessionParams) (File, error)
 	GetLatestAnalysisByNode(ctx context.Context, arg GetLatestAnalysisByNodeParams) (AnalysisMetadatum, error)
 	GetMessage(ctx context.Context, id string) (Message, error)
+	// Get metric data points for a specific metric within time range
+	GetMetricData(ctx context.Context, arg GetMetricDataParams) ([]MetricsDatum, error)
+	// Get metric data points for a specific component within time range
+	GetMetricDataByComponent(ctx context.Context, arg GetMetricDataByComponentParams) ([]MetricsDatum, error)
+	// Get metadata for a specific metric
+	GetMetricMetadata(ctx context.Context, metricName string) (MetricsMetadatum, error)
+	// Get statistics for a specific metric over time period
+	GetMetricStatistics(ctx context.Context, arg GetMetricStatisticsParams) (GetMetricStatisticsRow, error)
+	// Get metrics summary from the view
+	GetMetricsSummary(ctx context.Context) ([]RecentMetricsSummary, error)
+	// Get performance benchmark for a metric
+	GetPerformanceBenchmark(ctx context.Context, metricName string) (PerformanceBenchmark, error)
+	// Get recent metrics for a specific session
+	GetRecentMetricsForSession(ctx context.Context, arg GetRecentMetricsForSessionParams) ([]MetricsDatum, error)
 	GetSessionByID(ctx context.Context, id string) (Session, error)
+	// Get current system health for all components
+	GetSystemHealth(ctx context.Context, lastCheck time.Time) ([]SystemHealth, error)
+	// Get system health overview from view
+	GetSystemHealthOverview(ctx context.Context) ([]SystemHealthOverview, error)
+	// Get top metrics by value for a specific metric type
+	GetTopMetricsByValue(ctx context.Context, arg GetTopMetricsByValueParams) ([]GetTopMetricsByValueRow, error)
+	// Telemetry and Metrics SQL Queries
+	// Insert a new metric data point
+	InsertMetricData(ctx context.Context, arg InsertMetricDataParams) error
+	// Insert or update metric metadata
+	InsertMetricMetadata(ctx context.Context, arg InsertMetricMetadataParams) error
+	// Insert a new performance alert
+	InsertPerformanceAlert(ctx context.Context, arg InsertPerformanceAlertParams) (int64, error)
+	// Insert a performance benchmark
+	InsertPerformanceBenchmark(ctx context.Context, arg InsertPerformanceBenchmarkParams) error
 	ListAllDependencies(ctx context.Context) ([]ListAllDependenciesRow, error)
 	ListAnalysisByNode(ctx context.Context, nodeID sql.NullInt64) ([]AnalysisMetadatum, error)
 	ListAnalysisBySession(ctx context.Context, sessionID sql.NullString) ([]AnalysisMetadatum, error)
@@ -74,12 +128,18 @@ type Querier interface {
 	ListNewFiles(ctx context.Context) ([]File, error)
 	ListPendingAnalysis(ctx context.Context) ([]AnalysisMetadatum, error)
 	ListSessions(ctx context.Context) ([]Session, error)
+	// Mark an alert as resolved
+	ResolveAlert(ctx context.Context, id int64) error
 	SearchCodeNodesBySymbol(ctx context.Context, dollar_1 sql.NullString) ([]CodeNode, error)
 	UpdateAnalysisStatus(ctx context.Context, arg UpdateAnalysisStatusParams) (AnalysisMetadatum, error)
 	UpdateCodeNode(ctx context.Context, arg UpdateCodeNodeParams) (CodeNode, error)
 	UpdateEmbedding(ctx context.Context, arg UpdateEmbeddingParams) (Embedding, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
+	// Enable or disable a metric
+	UpdateMetricEnabled(ctx context.Context, arg UpdateMetricEnabledParams) error
 	UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error)
+	// Update system health status for a component
+	UpdateSystemHealthStatus(ctx context.Context, arg UpdateSystemHealthStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

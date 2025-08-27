@@ -6,7 +6,21 @@ package db
 
 import (
 	"database/sql"
+	"time"
 )
+
+type ActiveAlert struct {
+	AlertType        string          `json:"alert_type"`
+	MetricName       string          `json:"metric_name"`
+	CurrentValue     sql.NullFloat64 `json:"current_value"`
+	ThresholdValue   sql.NullFloat64 `json:"threshold_value"`
+	Severity         string          `json:"severity"`
+	Message          string          `json:"message"`
+	Component        sql.NullString  `json:"component"`
+	SessionID        sql.NullString  `json:"session_id"`
+	CreatedAt        sql.NullTime    `json:"created_at"`
+	SeverityPriority interface{}     `json:"severity_priority"`
+}
 
 type AnalysisMetadatum struct {
 	ID          int64          `json:"id"`
@@ -19,6 +33,18 @@ type AnalysisMetadatum struct {
 	CompletedAt sql.NullTime   `json:"completed_at"`
 	CreatedAt   sql.NullTime   `json:"created_at"`
 	UpdatedAt   sql.NullTime   `json:"updated_at"`
+}
+
+type CodeContentFt struct {
+	Content     string `json:"content"`
+	Symbol      string `json:"symbol"`
+	Comments    string `json:"comments"`
+	Identifiers string `json:"identifiers"`
+	NodeID      string `json:"node_id"`
+	SessionID   string `json:"session_id"`
+	Path        string `json:"path"`
+	Language    string `json:"language"`
+	Kind        string `json:"kind"`
 }
 
 type CodeNode struct {
@@ -35,6 +61,23 @@ type CodeNode struct {
 	UpdatedAt sql.NullTime   `json:"updated_at"`
 }
 
+type CodeSearchResult struct {
+	NodeID        string        `json:"node_id"`
+	SessionID     string        `json:"session_id"`
+	Path          string        `json:"path"`
+	Language      string        `json:"language"`
+	Kind          string        `json:"kind"`
+	Symbol        string        `json:"symbol"`
+	Content       string        `json:"content"`
+	Comments      string        `json:"comments"`
+	Identifiers   string        `json:"identifiers"`
+	StartLine     sql.NullInt64 `json:"start_line"`
+	EndLine       sql.NullInt64 `json:"end_line"`
+	NodeMetadata  interface{}   `json:"node_metadata"`
+	NodeCreatedAt sql.NullTime  `json:"node_created_at"`
+	NodeUpdatedAt sql.NullTime  `json:"node_updated_at"`
+}
+
 type Dependency struct {
 	ID        int64          `json:"id"`
 	FromNode  int64          `json:"from_node"`
@@ -42,6 +85,29 @@ type Dependency struct {
 	Relation  sql.NullString `json:"relation"`
 	Metadata  interface{}    `json:"metadata"`
 	CreatedAt sql.NullTime   `json:"created_at"`
+}
+
+type DocumentationFt struct {
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	Tags      string `json:"tags"`
+	NodeID    string `json:"node_id"`
+	SessionID string `json:"session_id"`
+	DocType   string `json:"doc_type"`
+	Language  string `json:"language"`
+}
+
+type DocumentationSearchResult struct {
+	NodeID    string         `json:"node_id"`
+	SessionID string         `json:"session_id"`
+	DocType   string         `json:"doc_type"`
+	Language  string         `json:"language"`
+	Title     string         `json:"title"`
+	Content   string         `json:"content"`
+	Tags      string         `json:"tags"`
+	Path      sql.NullString `json:"path"`
+	Symbol    sql.NullString `json:"symbol"`
+	Kind      sql.NullString `json:"kind"`
 }
 
 type Embedding struct {
@@ -65,6 +131,36 @@ type File struct {
 	UpdatedAt int64  `json:"updated_at"`
 }
 
+type FileContentFt struct {
+	Content   string `json:"content"`
+	Filename  string `json:"filename"`
+	SessionID string `json:"session_id"`
+	Path      string `json:"path"`
+	Language  string `json:"language"`
+	FileSize  string `json:"file_size"`
+}
+
+type FileSearchResult struct {
+	SessionID string `json:"session_id"`
+	Path      string `json:"path"`
+	Language  string `json:"language"`
+	Filename  string `json:"filename"`
+	Content   string `json:"content"`
+	FileSize  string `json:"file_size"`
+	NodeCount int64  `json:"node_count"`
+}
+
+type FtsConfig struct {
+	ID            int64         `json:"id"`
+	TableName     string        `json:"table_name"`
+	Enabled       sql.NullBool  `json:"enabled"`
+	LastRebuild   sql.NullTime  `json:"last_rebuild"`
+	DocumentCount sql.NullInt64 `json:"document_count"`
+	IndexSizeKb   sql.NullInt64 `json:"index_size_kb"`
+	CreatedAt     sql.NullTime  `json:"created_at"`
+	UpdatedAt     sql.NullTime  `json:"updated_at"`
+}
+
 type Message struct {
 	ID         string         `json:"id"`
 	SessionID  string         `json:"session_id"`
@@ -75,6 +171,75 @@ type Message struct {
 	UpdatedAt  int64          `json:"updated_at"`
 	FinishedAt sql.NullInt64  `json:"finished_at"`
 	Provider   sql.NullString `json:"provider"`
+}
+
+type MetricsDatum struct {
+	ID         int64          `json:"id"`
+	MetricName string         `json:"metric_name"`
+	MetricType string         `json:"metric_type"`
+	Value      float64        `json:"value"`
+	Unit       sql.NullString `json:"unit"`
+	SessionID  sql.NullString `json:"session_id"`
+	Component  sql.NullString `json:"component"`
+	Tags       sql.NullString `json:"tags"`
+	Timestamp  time.Time      `json:"timestamp"`
+	CreatedAt  sql.NullTime   `json:"created_at"`
+}
+
+type MetricsMetadatum struct {
+	ID            int64          `json:"id"`
+	MetricName    string         `json:"metric_name"`
+	MetricType    string         `json:"metric_type"`
+	Description   sql.NullString `json:"description"`
+	Unit          sql.NullString `json:"unit"`
+	Component     sql.NullString `json:"component"`
+	Enabled       sql.NullBool   `json:"enabled"`
+	RetentionDays sql.NullInt64  `json:"retention_days"`
+	CreatedAt     sql.NullTime   `json:"created_at"`
+	UpdatedAt     sql.NullTime   `json:"updated_at"`
+}
+
+type PerformanceAlert struct {
+	ID             int64           `json:"id"`
+	AlertType      string          `json:"alert_type"`
+	MetricName     string          `json:"metric_name"`
+	CurrentValue   sql.NullFloat64 `json:"current_value"`
+	ThresholdValue sql.NullFloat64 `json:"threshold_value"`
+	Severity       string          `json:"severity"`
+	Message        string          `json:"message"`
+	Component      sql.NullString  `json:"component"`
+	SessionID      sql.NullString  `json:"session_id"`
+	Acknowledged   sql.NullBool    `json:"acknowledged"`
+	AcknowledgedBy sql.NullString  `json:"acknowledged_by"`
+	AcknowledgedAt sql.NullTime    `json:"acknowledged_at"`
+	Resolved       sql.NullBool    `json:"resolved"`
+	ResolvedAt     sql.NullTime    `json:"resolved_at"`
+	CreatedAt      sql.NullTime    `json:"created_at"`
+}
+
+type PerformanceBenchmark struct {
+	ID                int64           `json:"id"`
+	MetricName        string          `json:"metric_name"`
+	TargetValue       float64         `json:"target_value"`
+	ThresholdWarning  sql.NullFloat64 `json:"threshold_warning"`
+	ThresholdCritical sql.NullFloat64 `json:"threshold_critical"`
+	Unit              sql.NullString  `json:"unit"`
+	Description       sql.NullString  `json:"description"`
+	Active            sql.NullBool    `json:"active"`
+	CreatedAt         sql.NullTime    `json:"created_at"`
+	UpdatedAt         sql.NullTime    `json:"updated_at"`
+}
+
+type RecentMetricsSummary struct {
+	MetricName  string          `json:"metric_name"`
+	MetricType  string          `json:"metric_type"`
+	Unit        sql.NullString  `json:"unit"`
+	Component   sql.NullString  `json:"component"`
+	DataPoints  int64           `json:"data_points"`
+	AvgValue    sql.NullFloat64 `json:"avg_value"`
+	MinValue    interface{}     `json:"min_value"`
+	MaxValue    interface{}     `json:"max_value"`
+	LastUpdated interface{}     `json:"last_updated"`
 }
 
 type Session struct {
@@ -88,4 +253,22 @@ type Session struct {
 	UpdatedAt        int64          `json:"updated_at"`
 	CreatedAt        int64          `json:"created_at"`
 	SummaryMessageID sql.NullString `json:"summary_message_id"`
+}
+
+type SystemHealth struct {
+	ID        int64          `json:"id"`
+	Component string         `json:"component"`
+	Status    string         `json:"status"`
+	Details   sql.NullString `json:"details"`
+	LastCheck time.Time      `json:"last_check"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+	UpdatedAt sql.NullTime   `json:"updated_at"`
+}
+
+type SystemHealthOverview struct {
+	Component      string         `json:"component"`
+	Status         string         `json:"status"`
+	Details        sql.NullString `json:"details"`
+	LastCheck      time.Time      `json:"last_check"`
+	StatusPriority int64          `json:"status_priority"`
 }
