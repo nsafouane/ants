@@ -231,7 +231,7 @@ func (d *performanceDashboard) renderTabBar() string {
 		if i == d.selectedTab {
 			style = style.Background(t.Accent).Foreground(t.White).Bold(true)
 		} else {
-			style = style.Foreground(t.Muted)
+			style = style.Foreground(t.FgMuted)
 		}
 
 		// Add alert indicator for alerts tab
@@ -344,7 +344,10 @@ func (d *performanceDashboard) renderOverview() string {
 		sortedAlerts := make([]db.PerformanceAlert, len(d.activeAlerts))
 		copy(sortedAlerts, d.activeAlerts)
 		sort.Slice(sortedAlerts, func(i, j int) bool {
-			return sortedAlerts[i].CreatedAt.After(sortedAlerts[j].CreatedAt)
+			if !sortedAlerts[i].CreatedAt.Valid || !sortedAlerts[j].CreatedAt.Valid {
+				return sortedAlerts[i].CreatedAt.Valid
+			}
+			return sortedAlerts[i].CreatedAt.Time.After(sortedAlerts[j].CreatedAt.Time)
 		})
 
 		for i, alert := range sortedAlerts {
@@ -353,9 +356,14 @@ func (d *performanceDashboard) renderOverview() string {
 			}
 
 			severity := alert.Severity
-			timeAgo := time.Since(alert.CreatedAt).Truncate(time.Second)
+			var timeAgo time.Duration
+			if alert.CreatedAt.Valid {
+				timeAgo = time.Since(alert.CreatedAt.Time).Truncate(time.Second)
+			} else {
+				timeAgo = 0
+			}
 
-			severityColor := t.Muted
+			severityColor := t.FgMuted
 			switch severity {
 			case "critical":
 				severityColor = t.Red
@@ -484,7 +492,7 @@ func (d *performanceDashboard) renderSystemHealth() string {
 			statusColor = t.Red
 			statusSymbol = "○"
 		default:
-			statusColor = t.Muted
+			statusColor = t.FgMuted
 			statusSymbol = "?"
 		}
 
@@ -531,12 +539,15 @@ func (d *performanceDashboard) renderAlertsDetail() string {
 		if severityOrder[sortedAlerts[i].Severity] != severityOrder[sortedAlerts[j].Severity] {
 			return severityOrder[sortedAlerts[i].Severity] < severityOrder[sortedAlerts[j].Severity]
 		}
-		return sortedAlerts[i].CreatedAt.After(sortedAlerts[j].CreatedAt)
+		if !sortedAlerts[i].CreatedAt.Valid || !sortedAlerts[j].CreatedAt.Valid {
+			return sortedAlerts[i].CreatedAt.Valid
+		}
+		return sortedAlerts[i].CreatedAt.Time.After(sortedAlerts[j].CreatedAt.Time)
 	})
 
 	for _, alert := range sortedAlerts {
 		severity := alert.Severity
-		severityColor := t.Muted
+		severityColor := t.FgMuted
 		severitySymbol := "!"
 
 		switch severity {
@@ -550,11 +561,16 @@ func (d *performanceDashboard) renderAlertsDetail() string {
 			severityColor = t.Blue
 			severitySymbol = "🔵"
 		case "low":
-			severityColor = t.Muted
+			severityColor = t.FgMuted
 			severitySymbol = "⚪"
 		}
 
-		timeAgo := time.Since(alert.CreatedAt).Truncate(time.Second)
+		var timeAgo time.Duration
+		if alert.CreatedAt.Valid {
+			timeAgo = time.Since(alert.CreatedAt.Time).Truncate(time.Second)
+		} else {
+			timeAgo = 0
+		}
 
 		alertHeader := lipgloss.JoinHorizontal(lipgloss.Left,
 			severitySymbol,

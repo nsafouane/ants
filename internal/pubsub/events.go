@@ -44,6 +44,16 @@ const (
 	FileRenamedEvent EventType = "file_renamed"
 	FileChangedEvent EventType = "file_changed"
 
+	// Traversal Events
+	TraversalStartedEvent   EventType = "traversal_started"
+	TraversalCompletedEvent EventType = "traversal_completed"
+	TraversalFailedEvent    EventType = "traversal_failed"
+
+	// Git Analysis Events
+	GitAnalysisStartedEvent   EventType = "git_analysis_started"
+	GitAnalysisCompletedEvent EventType = "git_analysis_completed"
+	GitAnalysisFailedEvent    EventType = "git_analysis_failed"
+
 	// Cache and Maintenance Events
 	CacheInvalidatedEvent EventType = "cache_invalidated"
 	CleanupStartedEvent   EventType = "cleanup_started"

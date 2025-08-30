@@ -92,5 +92,41 @@
         }
       }
     }
+  },
+  "tier1": {
+    "performance_targets": {
+      "max_scan_time_seconds": 90.0,
+      "ast_memory_budget_mb": 256,
+      "target_files_per_second": 50.0,
+      "max_file_size_mb": 10
+    },
+    "file_traversal": {
+      "worker_count": 0,
+      "buffer_size": 1000,
+      "include_extensions": [".go", ".py", ".js", ".ts", ".java", ".c", ".cpp", ".h", ".hpp", ".rs", ".rb", ".php", ".cs", ".swift", ".kt", ".scala", ".sql"],
+      "exclude_extensions": [".exe", ".bin", ".dll", ".so", ".dylib", ".o", ".obj", ".class", ".jar", ".war", ".ear", ".tar", ".zip", ".gz", ".bz2", ".7z", ".rar"],
+      "exclude_directories": ["node_modules", "vendor", ".git", ".svn", ".hg", "build", "dist", "target", "bin", "obj", ".vscode", ".idea", "__pycache__", ".pytest_cache", ".mypy_cache"]
+    },
+    "ast_processing": {
+      "enable_caching": true,
+      "cache_ttl_seconds": 3600,
+      "max_cache_size_mb": 128,
+      "supported_languages": ["go", "python", "javascript", "typescript", "java", "c", "cpp", "rust", "ruby", "php", "csharp", "sql"]
+    },
+    "git_analysis": {
+      "enabled": true,
+      "max_commits": 1000,
+      "hotspot_window_days": 90,
+      "min_hotspot_changes": 5
+    },
+    "complexity_analysis": {
+      "enabled": true,
+      "metrics": ["cyclomatic", "cognitive", "halstead"],
+      "warning_thresholds": {
+        "cyclomatic_complexity": 10,
+        "cognitive_complexity": 15,
+        "max_function_length": 50
+      }
+    }
   }
 }

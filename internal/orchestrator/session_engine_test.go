@@ -216,6 +216,101 @@ func (m *MockQuerier) UpdateEmbedding(ctx context.Context, arg db.UpdateEmbeddin
 	return db.Embedding{}, nil
 }
 
+// Telemetry methods added for Phase 2
+func (m *MockQuerier) AcknowledgeAlert(ctx context.Context, arg db.AcknowledgeAlertParams) error {
+	return nil
+}
+func (m *MockQuerier) CleanOldMetrics(ctx context.Context, timestamp time.Time) error {
+	return nil
+}
+func (m *MockQuerier) CountActiveAlertsBySeverity(ctx context.Context) ([]db.CountActiveAlertsBySeverityRow, error) {
+	return []db.CountActiveAlertsBySeverityRow{}, nil
+}
+func (m *MockQuerier) GetActiveAlerts(ctx context.Context) ([]db.PerformanceAlert, error) {
+	return []db.PerformanceAlert{}, nil
+}
+func (m *MockQuerier) GetActiveAlertsByComponent(ctx context.Context, component sql.NullString) ([]db.PerformanceAlert, error) {
+	return []db.PerformanceAlert{}, nil
+}
+func (m *MockQuerier) GetAlertHistory(ctx context.Context, arg db.GetAlertHistoryParams) ([]db.PerformanceAlert, error) {
+	return []db.PerformanceAlert{}, nil
+}
+func (m *MockQuerier) GetAlertsFromView(ctx context.Context) ([]db.ActiveAlert, error) {
+	return []db.ActiveAlert{}, nil
+}
+func (m *MockQuerier) GetComponentHealth(ctx context.Context, component string) (db.SystemHealth, error) {
+	return db.SystemHealth{}, nil
+}
+func (m *MockQuerier) GetMetricData(ctx context.Context, arg db.GetMetricDataParams) ([]db.MetricsDatum, error) {
+	return []db.MetricsDatum{}, nil
+}
+func (m *MockQuerier) GetMetricMetadata(ctx context.Context, metricName string) (db.MetricsMetadatum, error) {
+	return db.MetricsMetadatum{}, nil
+}
+func (m *MockQuerier) GetMetricStatistics(ctx context.Context, arg db.GetMetricStatisticsParams) (db.GetMetricStatisticsRow, error) {
+	return db.GetMetricStatisticsRow{}, nil
+}
+func (m *MockQuerier) GetPerformanceBenchmark(ctx context.Context, metricName string) (db.PerformanceBenchmark, error) {
+	return db.PerformanceBenchmark{}, nil
+}
+func (m *MockQuerier) GetSystemHealth(ctx context.Context, recentTime time.Time) ([]db.SystemHealth, error) {
+	return []db.SystemHealth{}, nil
+}
+func (m *MockQuerier) InsertMetricData(ctx context.Context, arg db.InsertMetricDataParams) error {
+	return nil
+}
+func (m *MockQuerier) InsertMetricMetadata(ctx context.Context, arg db.InsertMetricMetadataParams) error {
+	return nil
+}
+func (m *MockQuerier) InsertPerformanceAlert(ctx context.Context, arg db.InsertPerformanceAlertParams) (int64, error) {
+	return 1, nil
+}
+func (m *MockQuerier) InsertPerformanceBenchmark(ctx context.Context, arg db.InsertPerformanceBenchmarkParams) error {
+	return nil
+}
+func (m *MockQuerier) ListActiveMetrics(ctx context.Context) ([]db.MetricsMetadatum, error) {
+	return []db.MetricsMetadatum{}, nil
+}
+func (m *MockQuerier) ListMetricsByComponent(ctx context.Context, component sql.NullString) ([]db.MetricsMetadatum, error) {
+	return []db.MetricsMetadatum{}, nil
+}
+func (m *MockQuerier) ResolveAlert(ctx context.Context, id int64) error {
+	return nil
+}
+func (m *MockQuerier) UpdateMetricEnabled(ctx context.Context, arg db.UpdateMetricEnabledParams) error {
+	return nil
+}
+func (m *MockQuerier) UpdateSystemHealthStatus(ctx context.Context, arg db.UpdateSystemHealthStatusParams) error {
+	return nil
+}
+func (m *MockQuerier) GetAllMetricMetadata(ctx context.Context) ([]db.MetricsMetadatum, error) {
+	return []db.MetricsMetadatum{}, nil
+}
+func (m *MockQuerier) GetAllPerformanceBenchmarks(ctx context.Context) ([]db.PerformanceBenchmark, error) {
+	return []db.PerformanceBenchmark{}, nil
+}
+func (m *MockQuerier) GetComponentMetricsSummary(ctx context.Context, arg db.GetComponentMetricsSummaryParams) ([]db.GetComponentMetricsSummaryRow, error) {
+	return []db.GetComponentMetricsSummaryRow{}, nil
+}
+func (m *MockQuerier) GetDatabaseSize(ctx context.Context) (db.GetDatabaseSizeRow, error) {
+	return db.GetDatabaseSizeRow{}, nil
+}
+func (m *MockQuerier) GetMetricDataByComponent(ctx context.Context, arg db.GetMetricDataByComponentParams) ([]db.MetricsDatum, error) {
+	return []db.MetricsDatum{}, nil
+}
+func (m *MockQuerier) GetMetricsSummary(ctx context.Context) ([]db.RecentMetricsSummary, error) {
+	return []db.RecentMetricsSummary{}, nil
+}
+func (m *MockQuerier) GetRecentMetricsForSession(ctx context.Context, arg db.GetRecentMetricsForSessionParams) ([]db.MetricsDatum, error) {
+	return []db.MetricsDatum{}, nil
+}
+func (m *MockQuerier) GetSystemHealthOverview(ctx context.Context) ([]db.SystemHealthOverview, error) {
+	return []db.SystemHealthOverview{}, nil
+}
+func (m *MockQuerier) GetTopMetricsByValue(ctx context.Context, arg db.GetTopMetricsByValueParams) ([]db.GetTopMetricsByValueRow, error) {
+	return []db.GetTopMetricsByValueRow{}, nil
+}
+
 func TestNewSessionContextEngine(t *testing.T) {
 	mockDB := &MockQuerier{}
 	config := &config.ContextEngineConfig{

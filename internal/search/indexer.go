@@ -650,7 +650,19 @@ func (ii *IncrementalIndexer) GetStats() IndexerStats {
 	ii.stats.mu.RLock()
 	defer ii.stats.mu.RUnlock()
 
-	return *ii.stats
+	// Return a copy without the mutex to avoid copying lock value
+	return IndexerStats{
+		TasksProcessed:   ii.stats.TasksProcessed,
+		TasksSucceeded:   ii.stats.TasksSucceeded,
+		TasksFailed:      ii.stats.TasksFailed,
+		BatchesProcessed: ii.stats.BatchesProcessed,
+		AverageLatency:   ii.stats.AverageLatency,
+		QueueDepth:       ii.stats.QueueDepth,
+		LastProcessedAt:  ii.stats.LastProcessedAt,
+		LastError:        ii.stats.LastError,
+		ErrorRate:        ii.stats.ErrorRate,
+		// Note: mu field is intentionally omitted to avoid copying the mutex
+	}
 }
 
 // ManualReindex triggers a manual reindex of specific content.

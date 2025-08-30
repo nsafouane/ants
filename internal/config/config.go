@@ -184,6 +184,111 @@ type VectorDBConfig struct {
 	DistanceMetric string `json:"distance_metric,omitempty" jsonschema:"description=Distance metric for similarity search,enum=Cosine,enum=Euclid,enum=Dot,default=Cosine"`
 }
 
+// Tier1AnalysisConfig holds configuration specific to Tier 1 structural analysis.
+type Tier1AnalysisConfig struct {
+	// Performance targets for Tier 1 analysis
+	PerformanceTargets *Tier1PerformanceTargets `json:"performance_targets,omitempty" jsonschema:"description=Performance targets for Tier 1 analysis"`
+	
+	// File traversal configuration
+	FileTraversal *FileTraversalConfig `json:"file_traversal,omitempty" jsonschema:"description=File traversal configuration"`
+	
+	// AST processing configuration
+	ASTProcessing *ASTProcessingConfig `json:"ast_processing,omitempty" jsonschema:"description=AST processing configuration"`
+	
+	// Git analysis configuration
+	GitAnalysis *GitAnalysisConfig `json:"git_analysis,omitempty" jsonschema:"description=Git history analysis configuration"`
+	
+	// Complexity analysis configuration
+	ComplexityAnalysis *ComplexityAnalysisConfig `json:"complexity_analysis,omitempty" jsonschema:"description=Code complexity analysis configuration"`
+}
+
+// Tier1PerformanceTargets defines performance targets for Tier 1 analysis.
+type Tier1PerformanceTargets struct {
+	// Maximum time allowed for complete structural scan in seconds
+	MaxScanTimeSeconds float64 `json:"max_scan_time_seconds,omitempty" jsonschema:"description=Maximum scan time in seconds for 100k LOC,minimum=1,default=90"`
+	
+	// Memory budget for AST parsing and caching in MB
+	ASTMemoryBudgetMB int `json:"ast_memory_budget_mb,omitempty" jsonschema:"description=Memory budget for AST parsing and caching (MB),minimum=64,default=256"`
+	
+	// Target files processed per second
+	TargetFilesPerSecond float64 `json:"target_files_per_second,omitempty" jsonschema:"description=Target files processed per second,minimum=1,default=50"`
+	
+	// Maximum file size to process (MB)
+	MaxFileSizeMB int `json:"max_file_size_mb,omitempty" jsonschema:"description=Maximum file size to process (MB),minimum=1,default=10"`
+}
+
+// FileTraversalConfig configures the parallel file traversal system.
+type FileTraversalConfig struct {
+	// Number of worker goroutines for file traversal
+	WorkerCount int `json:"worker_count,omitempty" jsonschema:"description=Number of worker goroutines for file traversal,minimum=1,default=0"`
+	
+	// Buffer size for file path channel
+	BufferSize int `json:"buffer_size,omitempty" jsonschema:"description=Buffer size for file path channel,minimum=100,default=1000"`
+	
+	// File extensions to include (empty means all)
+	IncludeExtensions []string `json:"include_extensions,omitempty" jsonschema:"description=File extensions to include in analysis,example=.go,example=.py,example=.js"`
+	
+	// File extensions to exclude
+	ExcludeExtensions []string `json:"exclude_extensions,omitempty" jsonschema:"description=File extensions to exclude from analysis,example=.exe,example=.bin"`
+	
+	// Directories to exclude
+	ExcludeDirectories []string `json:"exclude_directories,omitempty" jsonschema:"description=Directories to exclude from analysis,example=node_modules,example=vendor"`
+}
+
+// ASTProcessingConfig configures AST parsing and caching.
+type ASTProcessingConfig struct {
+	// Enable AST caching
+	EnableCaching bool `json:"enable_caching,omitempty" jsonschema:"description=Enable AST caching for performance,default=true"`
+	
+	// Cache TTL in seconds
+	CacheTTLSeconds int `json:"cache_ttl_seconds,omitempty" jsonschema:"description=AST cache TTL in seconds,minimum=60,default=3600"`
+	
+	// Maximum cache size in MB
+	MaxCacheSizeMB int `json:"max_cache_size_mb,omitempty" jsonschema:"description=Maximum AST cache size (MB),minimum=16,default=128"`
+	
+	// Languages to support for AST parsing
+	SupportedLanguages []string `json:"supported_languages,omitempty" jsonschema:"description=Languages to support for AST parsing,example=go,example=python,example=javascript"`
+}
+
+// GitAnalysisConfig configures Git history analysis.
+type GitAnalysisConfig struct {
+	// Enable Git history analysis
+	Enabled bool `json:"enabled,omitempty" jsonschema:"description=Enable Git history analysis,default=true"`
+	
+	// Maximum commits to analyze for hotspots
+	MaxCommits int `json:"max_commits,omitempty" jsonschema:"description=Maximum commits to analyze for hotspots,minimum=100,default=1000"`
+	
+	// Time window for hotspot analysis in days
+	HotspotWindowDays int `json:"hotspot_window_days,omitempty" jsonschema:"description=Time window for hotspot analysis in days,minimum=1,default=90"`
+	
+	// Minimum file changes to consider as hotspot
+	MinHotspotChanges int `json:"min_hotspot_changes,omitempty" jsonschema:"description=Minimum file changes to consider as hotspot,minimum=1,default=5"`
+}
+
+// ComplexityAnalysisConfig configures code complexity analysis.
+type ComplexityAnalysisConfig struct {
+	// Enable complexity analysis
+	Enabled bool `json:"enabled,omitempty" jsonschema:"description=Enable complexity analysis,default=true"`
+	
+	// Complexity metrics to calculate
+	Metrics []string `json:"metrics,omitempty" jsonschema:"description=Complexity metrics to calculate,example=cyclomatic,example=cognitive,example=halstead"`
+	
+	// Thresholds for complexity warnings
+	WarningThresholds *ComplexityThresholds `json:"warning_thresholds,omitempty" jsonschema:"description=Thresholds for complexity warnings"`
+}
+
+// ComplexityThresholds defines thresholds for complexity warnings.
+type ComplexityThresholds struct {
+	// Cyclomatic complexity threshold
+	CyclomaticComplexity int `json:"cyclomatic_complexity,omitempty" jsonschema:"description=Cyclomatic complexity warning threshold,minimum=1,default=10"`
+	
+	// Cognitive complexity threshold
+	CognitiveComplexity int `json:"cognitive_complexity,omitempty" jsonschema:"description=Cognitive complexity warning threshold,minimum=1,default=15"`
+	
+	// Maximum function length
+	MaxFunctionLength int `json:"max_function_length,omitempty" jsonschema:"description=Maximum function length warning threshold,minimum=1,default=50"`
+}
+
 // ContextEngineConfig holds configuration specific to the Context Engine feature.
 type ContextEngineConfig struct {
 	// Operational mode (Performance, On-Demand, Eco)
@@ -200,6 +305,9 @@ type ContextEngineConfig struct {
 
 	// PrewarmTopN indicates how many hotspot files to proactively run Tier 2 analysis on after Tier 1 completes.
 	PrewarmTopN int `json:"prewarm_top_n,omitempty" jsonschema:"description=Number of hotspot files to prewarm with Tier 2 analysis,minimum=0"`
+	
+	// Tier 1 analysis configuration
+	Tier1 *Tier1AnalysisConfig `json:"tier1,omitempty" jsonschema:"description=Tier 1 structural analysis configuration"`
 }
 
 type MCPs map[string]MCPConfig
